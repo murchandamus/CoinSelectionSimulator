@@ -1,6 +1,6 @@
 import util.Random
 
-class Wallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(Int,Int)], debug: Boolean, knapsackLimit: Int) {
+class Wallet(name: String, utxoList: Set[(Int,Int)], debug: Boolean, knapsackLimit: Int) {
     var countSpentUtxo: Int = 0
     var countReceivedUtxo: Int = 0
     var utxoPool: Set[(Int,Int)] = utxoList
@@ -36,6 +36,7 @@ class Wallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(Int,In
     }
 
     def spend(target: Int) {
+        val starttime: Long = System.currentTimeMillis /1000
         var selectedCoins: Set[(Int, Int)] = Set()
         val bestSingleUtxo = findMinimalSingleInput(target)
         var selectionFinished: Boolean = false
@@ -85,19 +86,6 @@ class Wallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(Int,In
 
         var change = selectionTotal(selectedCoins) - target
 
-        println(name + " had selected " + selectedCoins.size + " coins before pruning.")
-
-        if(prune && change > 0) {
-            for(coin <- selectedCoins) {
-                if(coin._2 <= change && selectedCoins.size > minInputs) {
-                    println(name + " pruned input with " + coin._2 + " because it was smaller than change of " + change + ".")
-                    change -= coin._2
-                    selectedCoins = selectedCoins - coin
-                }
-            }
-        }
-        println(name + " has selected " + selectedCoins.size + " coins after pruning.")
-
         countSpentUtxo = countSpentUtxo + selectedCoins.size
         var utxoPoolSizeBefore = utxoPool.size
         if(debug == true) {
@@ -118,10 +106,11 @@ class Wallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(Int,In
             var expected = utxoPoolSizeBefore - selectedCoins.size 
             println("ERROR: utxoPool.size was " + utxoPoolSizeBefore + " and is now " + utxoPoolSizeAfter +". It should be " + expected + " instead though.")
         }
-        println("To spend " + target + ", " + name + " selected " + selectedCoins.size + " inputs, with a total value of " + selectionTotal(selectedCoins) + " satoshi. The change was " + change + ". The wallet now has " + utxoPool.size + " utxo, worth "+ getWalletTotal() + " satoshi.")
         if(change > 0) {
             receive(change)
         }
+        val duration = starttime - (System.currentTimeMillis / 1000) 
+        println("To spend " + target + ", " + name + " selected " + selectedCoins.size + " inputs, with a total value of " + selectionTotal(selectedCoins) + " satoshi. The change was " + change + ". The wallet now has " + utxoPool.size + " utxo, worth "+ getWalletTotal() + " satoshi. It took " + duration + " to calculate.")
     }
 
     def selectionTotal(selection: Set[(Int,Int)]) : Int = {
@@ -134,19 +123,28 @@ class Wallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(Int,In
         var bestSelection: Set[(Int,Int)] = Set()
         var bestTotal: Int = getWalletTotal+1
         val rnd = new Random()
+        val utxoVec = utxoPool.toArray
 
         for( i <- 1 to tries) {
             var total = 0
+            var selected: Vector[Boolean] = Vector.fill(utxoVec.size)(false)
             var currentSelection: Set[(Int,Int)] = Set()
             while (total < target) {
-                val utxoVec = utxoPool.toArray
-                val randomUtxo = utxoVec(rnd.nextInt(utxoPool.size))
-                currentSelection = currentSelection + randomUtxo
+                val randomIndex = rnd.nextInt(utxoPool.size)
+                if(selected(randomIndex) == false) {
+                    selected=selected.updated(randomIndex,true) 
 
-                if(debug == true) {
-                    println(name + " randomed " + randomUtxo + ". Combination is now " + currentSelection + " in try number " + i + ".")
+                    val randomUtxo = utxoVec(randomIndex)
+                    currentSelection = currentSelection + randomUtxo
+
+                    if(debug == true) {
+                        println(name + " randomed " + randomUtxo + ". Combination is now " + currentSelection + " in try number " + i + ".")
+                    }
+                    total = total + randomUtxo._2
+                    if(total > target) {
+                        total = selectionTotal(currentSelection)
+                    }
                 }
-                total = selectionTotal(currentSelection)
             }
             if(total == target) {
                 println(name + " matched " + target + " by combining random UTXO. " + currentSelection + " Knapsack stopped after " + i + " tries.")
@@ -171,59 +169,3 @@ class Wallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(Int,In
     }
 }
 
-class Simulator(utxo: Set[(Int,Int)], operations: List[Int]) {
-    val regularWallet = new Wallet("Regular", false, 1, utxo,false, 1000) 
-    val pruningWallet = new Wallet("Pruning", true, 1, utxo,false, 1000) 
-    val pruningWalletMin2 = new Wallet("Pruning 2Min", true, 2, utxo,false,1000) 
-    val pruningWalletMin3 = new Wallet("Pruning 3Min", true, 3, utxo,false,1000) 
-
-    var wallets: List[Wallet] = List(regularWallet, pruningWallet, pruningWalletMin2, pruningWalletMin3)
-    
-    def simulate() {
-        operations.foreach{
-            x => if(x > 0) {
-                wallets.foreach(_.receive(x))
-            } else if(x < 0) {
-                wallets.foreach(_.spend((-1)*x))
-            }
-        }
-        wallets.foreach(_.printWalletStatus())
-    }
-}
-
-object Simulation {
-    def main(args: Array[String]) = {
-
-        val testCases = new Simulator(Set(), List(1, -1, 1, 1, -2, 1,1,1, 10, -9, -4, 3,3,3,3,11,-10, -1, -8))
-        val testCases2 = new Simulator(Set(), List(2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 9,-11))
-        val testCases3 = new Simulator(Set(), List(2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, -11))
-        
-        var utxo4: Set[(Int,Int)] = Set()
-        for(i <- 1 to 50000) {
-            var utxo = (i,i)
-            utxo4 = utxo4 + utxo
-        }
-        val testCases4 = new Simulator(utxo4, List(-50001))
-        //testCases.simulate()
-        //testCases2.simulate()
-        //testCases3.simulate()
-        testCases4.simulate()
-
-        var utxo5: Set[(Int,Int)] = Set()
-        for(i <- 1 to 201) {
-            var utxo = (i,1)
-            if(i == 200) {
-                utxo = (i,20000)
-            } else if(i == 201) {
-                utxo = (i,30000)
-            }
-
-            utxo5 = utxo5 + utxo
-        }
-        val testCases5 = new Simulator(utxo5, List(-50000))
-        //testCases.simulate()
-        //testCases2.simulate()
-        //testCases3.simulate()
-        testCases5.simulate()
-    }
-}
