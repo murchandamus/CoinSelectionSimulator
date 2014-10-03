@@ -1,6 +1,6 @@
 import util.Random
 
-class PruningWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLimit: Int) extends Wallet (name, utxoList, debug, knapsackLimit) {
+class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLimit: Int) extends Wallet (name, utxoList, debug, knapsackLimit) {
     override def spend(target: Long) {
         val starttime: Long = System.currentTimeMillis /1000
         var selectedCoins: Set[(Int, Long)] = Set()
@@ -41,6 +41,7 @@ class PruningWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[
         if(!selectionFinished) {
             val bestCombination = knapsack(target, knapsackLimit)
             val total = selectionTotal(bestCombination)
+            val bestSingleUtxo = findMinimalSingleInput(target*2)
             if(bestSingleUtxo._2 >= total) {
                 selectedCoins = bestCombination
             } else {
@@ -50,15 +51,15 @@ class PruningWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[
             selectionFinished = true
         }
 
-        var change = selectionTotal(selectedCoins) - target
+        var change : Long = selectionTotal(selectedCoins) - target
 
         if(debug == true) {
             println(name + " had selected " + selectedCoins.size + " coins before pruning.")
         }
 
-        if(prune && change > 0) {
+        if(prune && change > target) {
             for(coin <- selectedCoins) {
-                if(coin._2 <= change && selectedCoins.size > minInputs) {
+                if(coin._2 <= change - target*3/4 && selectedCoins.size > minInputs) {
                     println(name + " pruned input with " + coin._2 + " because it was smaller than change of " + change + ".")
                     change -= coin._2
                     selectedCoins = selectedCoins - coin
@@ -106,7 +107,7 @@ class PruningWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[
             var total : Long = 0
             var selected: Vector[Boolean] = Vector.fill(utxoVec.size)(false)
             var currentSelection: Set[(Int,Long)] = Set()
-            while (total < target) {
+            while (total < target*2) {
                 val randomIndex = rnd.nextInt(utxoPool.size)
                 if(selected(randomIndex) == false) {
                     selected=selected.updated(randomIndex,true) 
@@ -118,7 +119,7 @@ class PruningWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[
                         println(name + " randomed " + randomUtxo + ". Combination is now " + currentSelection + " in try number " + i + ".")
                     }
                     total = total + randomUtxo._2
-                    if(total > target) {
+                    if(total > target*2) {
                         total = selectionTotal(currentSelection)
                     }
                 }
@@ -127,10 +128,10 @@ class PruningWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[
             if(debug) {
                 println(name + " had selected " + currentSelection.size + " coins before pruning.")
             }
-            var change = total - target
-            if(prune && change > 0) {
+            var change : Long = total - target
+            if(prune && change > target) {
                 for(coin <- currentSelection) {
-                    if(coin._2 <= change && currentSelection.size > minInputs) {
+                    if(coin._2 <= change - target*3/4 && currentSelection.size > minInputs) {
                         if(debug) {
                             println(name + " pruned input with " + coin._2 + " because it was smaller than change of " + change + ".")
                         }

@@ -1,12 +1,12 @@
 import util.Random
 
-class Wallet(name: String, utxoList: Set[(Int,Int)], debug: Boolean, knapsackLimit: Int) {
+class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLimit: Int) {
     var countSpentUtxo: Int = 0
     var countReceivedUtxo: Int = 0
-    var utxoPool: Set[(Int,Int)] = utxoList
+    var utxoPool: Set[(Int,Long)] = utxoList
     var utxoIndex: Int = utxoPool.size
 
-    def receive(outputValue: Int) {
+    def receive(outputValue: Long) {
         if(outputValue > 0) {
             var utxo = (utxoIndex,outputValue)
             utxoIndex = utxoIndex+1
@@ -16,14 +16,14 @@ class Wallet(name: String, utxoList: Set[(Int,Int)], debug: Boolean, knapsackLim
         }
     }
 
-    def getWalletTotal() : Int = {
-        var total = 0
+    def getWalletTotal() : Long = {
+        var total : Long = 0
         utxoPool.foreach(total+=_._2)
         return total
     }
 
-    def findMinimalSingleInput(target: Int): (Int,Int) = {
-        var currentBest = (-1,Int.MaxValue)
+    def findMinimalSingleInput(target: Long): (Int,Long) = {
+        var currentBest = (-1,Long.MaxValue)
         for (utxo <- utxoPool) {
             if(utxo._2 >= target && utxo._2 < currentBest._2) {
                 currentBest = utxo
@@ -35,9 +35,9 @@ class Wallet(name: String, utxoList: Set[(Int,Int)], debug: Boolean, knapsackLim
         return currentBest
     }
 
-    def spend(target: Int) {
+    def spend(target: Long) {
         val starttime: Long = System.currentTimeMillis /1000
-        var selectedCoins: Set[(Int, Int)] = Set()
+        var selectedCoins: Set[(Int, Long)] = Set()
         val bestSingleUtxo = findMinimalSingleInput(target)
         var selectionFinished: Boolean = false
         //Case 1: pool contains target
@@ -52,7 +52,7 @@ class Wallet(name: String, utxoList: Set[(Int,Int)], debug: Boolean, knapsackLim
         //Case 2: All utxo smaller than target match target
         if(true != selectionFinished) {
             var smallerElements = utxoPool.filter(x =>x._2 < target)
-            var sum = 0
+            var sum : Long = 0
             for(small <- smallerElements) {
                 sum = sum + small._2
             }
@@ -84,7 +84,7 @@ class Wallet(name: String, utxoList: Set[(Int,Int)], debug: Boolean, knapsackLim
             selectionFinished = true
         }
 
-        var change = selectionTotal(selectedCoins) - target
+        var change : Long = selectionTotal(selectedCoins) - target
 
         countSpentUtxo = countSpentUtxo + selectedCoins.size
         var utxoPoolSizeBefore = utxoPool.size
@@ -113,22 +113,22 @@ class Wallet(name: String, utxoList: Set[(Int,Int)], debug: Boolean, knapsackLim
         println("To spend " + target + ", " + name + " selected " + selectedCoins.size + " inputs, with a total value of " + selectionTotal(selectedCoins) + " satoshi. The change was " + change + ". The wallet now has " + utxoPool.size + " utxo, worth "+ getWalletTotal() + " satoshi. It took " + duration + " to calculate.")
     }
 
-    def selectionTotal(selection: Set[(Int,Int)]) : Int = {
-        var totalValue = 0
+    def selectionTotal(selection: Set[(Int,Long)]) : Long = {
+        var totalValue : Long = 0
         selection.foreach(totalValue+= _._2)
         return totalValue
     }
 
-    def knapsack(target: Int, tries: Int) : Set[(Int,Int)] = {
-        var bestSelection: Set[(Int,Int)] = Set()
-        var bestTotal: Int = getWalletTotal+1
+    def knapsack(target: Long, tries: Int) : Set[(Int,Long)] = {
+        var bestSelection: Set[(Int,Long)] = Set()
+        var bestTotal: Long = getWalletTotal+1
         val rnd = new Random()
         val utxoVec = utxoPool.toArray
 
         for( i <- 1 to tries) {
-            var total = 0
+            var total : Long = 0
             var selected: Vector[Boolean] = Vector.fill(utxoVec.size)(false)
-            var currentSelection: Set[(Int,Int)] = Set()
+            var currentSelection: Set[(Int,Long)] = Set()
             while (total < target) {
                 val randomIndex = rnd.nextInt(utxoPool.size)
                 if(selected(randomIndex) == false) {
