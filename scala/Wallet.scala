@@ -2,9 +2,11 @@ import util.Random
 
 class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLimit: Int) {
     var countSpentUtxo: Int = 0
+    var inputSetSizes: List[Int] = List()
     var countReceivedUtxo: Int = 0
     var utxoPool: Set[(Int,Long)] = utxoList
     var utxoIndex: Int = utxoPool.size
+    var changesCreated: List[Long] = List()
 
     def receive(outputValue: Long) {
         if(outputValue > 0) {
@@ -36,10 +38,14 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
     }
 
     def spend(target: Long) {
-        val starttime: Long = System.currentTimeMillis /1000
+        val starttime: Long = System.currentTimeMillis
         var selectedCoins: Set[(Int, Long)] = Set()
         val bestSingleUtxo = findMinimalSingleInput(target)
         var selectionFinished: Boolean = false
+        //Case 0: Spend target bigger than wallet content
+        if(target > getWalletTotal) {
+            selectionFinished = true
+        }
         //Case 1: pool contains target
         if(bestSingleUtxo._2 == target) {
             selectedCoins = Set(bestSingleUtxo)
@@ -87,6 +93,8 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
         var change : Long = selectionTotal(selectedCoins) - target
 
         countSpentUtxo = countSpentUtxo + selectedCoins.size
+        inputSetSizes = selectedCoins.size :: inputSetSizes 
+
         var utxoPoolSizeBefore = utxoPool.size
         if(debug == true) {
             println("UtxoPool is " + utxoPool)
@@ -108,9 +116,10 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
         }
         if(change > 0) {
             receive(change)
+            changesCreated = change :: changesCreated 
         }
-        val duration = starttime - (System.currentTimeMillis / 1000) 
-        println("To spend " + target + ", " + name + " selected " + selectedCoins.size + " inputs, with a total value of " + selectionTotal(selectedCoins) + " satoshi. The change was " + change + ". The wallet now has " + utxoPool.size + " utxo, worth "+ getWalletTotal() + " satoshi. It took " + duration + " to calculate.")
+        val duration = (System.currentTimeMillis) - starttime 
+        println("To spend " + target + ", " + name + " selected " + selectedCoins.size + " inputs, with a total value of " + selectionTotal(selectedCoins) + " satoshi. The change was " + change + ". The wallet now has " + utxoPool.size + " utxo, worth "+ getWalletTotal() + " satoshi. It took " + duration + " ms to calculate.")
     }
 
     def selectionTotal(selection: Set[(Int,Long)]) : Long = {
@@ -154,9 +163,13 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
                 bestTotal = total
                 //if(debug == true) {
                     if(currentSelection.size <=20) {
-                        println(name + " found better combination with " + currentSelection.size + " inputs, with a total of " + total +", using " + currentSelection + " in try " + i + ".")
+                        if(debug) {
+                            println(name + " found better combination with " + currentSelection.size + " inputs, with a total of " + total +", using " + currentSelection + " in try " + i + ".")
+                        }
                     } else {
-                        println(name + " found better combination with " + currentSelection.size + " inputs, with a total of " + total +", in try " + i + ".")
+                        if(debug) {
+                            println(name + " found better combination with " + currentSelection.size + " inputs, with a total of " + total +", in try " + i + ".")
+                        }
                     }
                 //}
             }
@@ -166,6 +179,27 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
 
     def printWalletStatus() {
         println(name + " finally has "+ getWalletTotal() + " satoshi, in " + utxoPool.size + " UTXO, by receiving " +countReceivedUtxo + " UTXO and spending " + countSpentUtxo + ".")
+        if(changesCreated.length > 0) {
+            val meanChange : Double = changesCreated.reduce(_ + _).toDouble/changesCreated.length
+            val biggestChange : Long = changesCreated.max
+            val smallestChange : Long = changesCreated.min
+            val deviations = changesCreated.map(change => (change - meanChange)*(change-meanChange))
+            val stdDev : Double = math.sqrt(deviations.reduce(_ + _) / deviations.length)
+            println(name + " created " + changesCreated.length + " changes, the smallest was " + smallestChange +", the biggest was " + biggestChange + ". The mean change created was " + meanChange + " with a stdDev of " + stdDev + ".")
+        } else {
+            println(name + " didn't create any changes.")
+        }
+
+        if(inputSetSizes.length > 0) {
+            val meanInputSetSize : Double = inputSetSizes.reduce(_ + _).toDouble/inputSetSizes.length
+            val biggestInputSet : Long = inputSetSizes.max
+            val smallestInputSet : Long = inputSetSizes.min
+            val inputDeviations = inputSetSizes.map(inputSetSize => (inputSetSize - meanInputSetSize)*(inputSetSize - meanInputSetSize))
+            val inputStdDev : Double = math.sqrt(inputDeviations.reduce(_ + _) / inputDeviations.length)
+            println(name + " spent " + countSpentUtxo + " utxo, the smallest input set having " + smallestInputSet +" inputs, the biggest set having " + biggestInputSet + ". The mean set size was " + meanInputSetSize + " with a stdDev of " + inputStdDev + ".")
+        } else {
+            println(name + " didn't use any inputs.")
+        }
     }
 }
 

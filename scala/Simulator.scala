@@ -25,6 +25,31 @@ class Simulator(utxo: Set[(Int,Long)], operations: List[Long]) {
     }
 }
 
+class ParetoGenerator (low:Int, high:Int, k:Int) {
+    val rnd = new Random()
+    def next() : Long = {
+        var accepted = false
+        var nextValue : Long = -1
+        val signum = rnd.nextInt(4)
+        while(!accepted) {
+            val candidate : Long = rnd.nextInt(high.toInt).toLong
+            val score = rnd.nextFloat()
+            val prob : Double = 1.0 - math.pow(low.toFloat/candidate, k)
+            if(score <= prob) {
+                accepted = true
+                nextValue = candidate
+            }
+        }
+       
+        if(signum == 0) {
+            // Create incoming of quadruple value with 1/4 chance.
+            nextValue * 4
+        } else {
+            nextValue *(-1)
+        }
+    }
+}
+
 object Simulation {
     def main(args: Array[String]) = {
 
@@ -74,12 +99,12 @@ object Simulation {
         var utxo7: Set[(Int,Long)] = Set()
         var ops7: List[Long] = List()
 
-        for(i <- 1 to 10000) {
+        for(i <- 1 to 1000) {
             val nextBalance : Long = rnd.nextInt(10000000-2500).toLong
             var utxo = (i,nextBalance+2500)
             utxo7 = utxo7 + utxo
         }
-        for(i <- 1 to 1000) {
+        for(i <- 1 to 10000) {
             var nextOp : Long= (rnd.nextGaussian()*250000000).toLong
             if(nextOp >= 0 && nextOp < 540) {
                 nextOp = nextOp +540
@@ -89,7 +114,26 @@ object Simulation {
             ops7 = nextOp :: ops7
         }
         val testCases7 = new Simulator(utxo7, ops7)
-        /*
+        
+        var utxo8: Set[(Int,Long)] = Set()
+        var ops8: List[Long] = List()
+
+        for(i <- 1 to 1000) {
+            val nextBalance : Long = rnd.nextInt(10000000-2500).toLong
+            var utxo = (i,nextBalance+2500)
+            utxo8 = utxo8 + utxo
+        }
+        val par = new ParetoGenerator(540, math.pow(10,8).toInt,1)
+        for(i <- 1 to 10000) {
+            var nextOp : Long= (par.next()).toLong
+            if(nextOp >= 0 && nextOp < 540) {
+                nextOp = nextOp +540
+            } else if(nextOp > -540) {
+                nextOp = nextOp -540
+            }
+            ops8 = nextOp :: ops8
+        }
+        val testCases8 = new Simulator(utxo8, ops8)
 println("--------------------------------------------------------------------------------------")
 println("---------------TEST CASE 1 STARTING---------------------------------------------------")
 println("--------------------------------------------------------------------------------------")
@@ -110,7 +154,6 @@ println("-----------------------------------------------------------------------
 println("---------------TEST CASE 5 STARTING---------------------------------------------------")
 println("--------------------------------------------------------------------------------------")
         testCases5.simulate()
-        */
 println("--------------------------------------------------------------------------------------")
 println("---------------TEST CASE 6 STARTING---------------------------------------------------")
 println("--------------------------------------------------------------------------------------")
@@ -119,5 +162,9 @@ println("-----------------------------------------------------------------------
 println("---------------TEST CASE 7 STARTING---------------------------------------------------")
 println("--------------------------------------------------------------------------------------")
         testCases7.simulate()
+println("--------------------------------------------------------------------------------------")
+println("---------------TEST CASE 8 STARTING---------------------------------------------------")
+println("--------------------------------------------------------------------------------------")
+        testCases8.simulate()
     }
 }
