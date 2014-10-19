@@ -33,11 +33,11 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
                     println(name + " matched " + target + " by combining all UTXO smaller than target.")
                 }
             } else if (sum < target) {
-        //Case 3: Sum of smaller UTXO is not sufficient
-                selectedCoins = Set(bestSingleUtxo)
-                selectionFinished = true
+        //Case 3: Sum of smaller UTXO is not sufficient, IN DOUBLE WALLET try to Double target here instead!
+                //selectedCoins = Set(bestSingleUtxo)
+                //selectionFinished = true
                 if(debug == true) {
-                    println(name + " didn't contain a combination of smaller UTXO to supersede " + target + ". Defaulting to smallest sufficient UTXO.")
+                    println(name + " didn't contain a combination of smaller UTXO to supersede " + target + ". Going to Doubling Target.")
                 }
             }
         }
