@@ -235,7 +235,7 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
         } else {
             inputSetInfo = 0 +"," + 0 + "," + 0 + "," + 0 + ","
         }
-        println(""+mainInfo + changeInfo + inputSetInfo)
+        println(mainInfo + changeInfo + inputSetInfo)
     }
 }
 
