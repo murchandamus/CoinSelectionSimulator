@@ -213,10 +213,6 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
 
         var inputSetInfo = ""
 
-<<<<<<< HEAD
-=======
-        println(name + " finally has "+ getWalletTotal() + " satoshi, in " + utxoPool.size + " UTXO, by receiving " +countReceivedUtxo + " UTXO and spending " + countSpentUtxo + ".")
->>>>>>> c5c4f67316e453b4ddcd360ff33ee1476ee419f9
         if(changesCreated.length > 0) {
             val meanChange : Double = changesCreated.reduce(_ + _).toDouble/changesCreated.length
             val biggestChange : Long = changesCreated.max
@@ -239,10 +235,7 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
         } else {
             inputSetInfo = 0 +"," + 0 + "," + 0 + "," + 0 + ","
         }
-<<<<<<< HEAD
-        println(mainInfo + changeInfo, inputSetInfo)
-=======
->>>>>>> c5c4f67316e453b4ddcd360ff33ee1476ee419f9
+        println(""+mainInfo + changeInfo + inputSetInfo)
     }
 }
 
