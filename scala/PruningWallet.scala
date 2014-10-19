@@ -73,8 +73,10 @@ class PruningWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[
             println(name + " has selected " + selectedCoins.size + " coins after pruning.")
         }
 
-        countSpentUtxo = countSpentUtxo + selectedCoins.size
-        inputSetSizes = selectedCoins.size :: inputSetSizes 
+        if(selectedCoins.size > 0) {
+            countSpentUtxo = countSpentUtxo + selectedCoins.size
+            inputSetSizes = selectedCoins.size :: inputSetSizes 
+        }
         var utxoPoolSizeBefore = utxoPool.size
         if(debug == true) {
             println("UtxoPool is " + utxoPool)

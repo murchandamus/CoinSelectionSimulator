@@ -92,8 +92,10 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
 
         var change : Long = selectionTotal(selectedCoins) - target
 
-        countSpentUtxo = countSpentUtxo + selectedCoins.size
-        inputSetSizes = selectedCoins.size :: inputSetSizes 
+        if(selectedCoins.size > 0) {
+            countSpentUtxo = countSpentUtxo + selectedCoins.size
+            inputSetSizes = selectedCoins.size :: inputSetSizes 
+        }
 
         var utxoPoolSizeBefore = utxoPool.size
         if(debug == true) {
@@ -177,6 +179,10 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
         return bestSelection
     }
 
+    def printStatusHeader() {
+        println("Wallet Type,final value,#UTXO,#received,#spent,#changes created,smallest change,biggest change,mean change,stDev of change,smallest input set, biggest input set, mean size of input set, stdev of input set size")
+    }
+
     def printWalletStatus() {
         println(name + " finally has "+ getWalletTotal() + " satoshi, in " + utxoPool.size + " UTXO, by receiving " +countReceivedUtxo + " UTXO and spending " + countSpentUtxo + ".")
         if(changesCreated.length > 0) {
@@ -189,7 +195,6 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
         } else {
             println(name + " didn't create any changes.")
         }
-
         if(inputSetSizes.length > 0) {
             val meanInputSetSize : Double = inputSetSizes.reduce(_ + _).toDouble/inputSetSizes.length
             val biggestInputSet : Long = inputSetSizes.max
@@ -200,6 +205,37 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
         } else {
             println(name + " didn't use any inputs.")
         }
+    }
+
+    def printWalletStatusCSV() {
+        var mainInfo = name+","+getWalletTotal()+","+utxoPool.size+","+countReceivedUtxo+","+countSpentUtxo+","
+        var changeInfo = ""
+
+        var inputSetInfo = ""
+
+        if(changesCreated.length > 0) {
+            val meanChange : Double = changesCreated.reduce(_ + _).toDouble/changesCreated.length
+            val biggestChange : Long = changesCreated.max
+            val smallestChange : Long = changesCreated.min
+            val deviations = changesCreated.map(change => (change - meanChange)*(change-meanChange))
+            val stdDev : Double = math.sqrt(deviations.reduce(_ + _) / deviations.length)
+
+            changeInfo = changesCreated.length+","+smallestChange +"," + biggestChange + "," + meanChange + "," + stdDev + ","
+        } else {
+            changeInfo = 0+","+ 0 +"," + 0 + "," + 0 + "," + 0.00 + ","
+        }
+
+        if(inputSetSizes.length > 0) {
+            val meanInputSetSize : Double = inputSetSizes.reduce(_ + _).toDouble/inputSetSizes.length
+            val biggestInputSet : Long = inputSetSizes.max
+            val smallestInputSet : Long = inputSetSizes.min
+            val inputDeviations = inputSetSizes.map(inputSetSize => (inputSetSize - meanInputSetSize)*(inputSetSize - meanInputSetSize))
+            val inputStdDev : Double = math.sqrt(inputDeviations.reduce(_ + _) / inputDeviations.length)
+            inputSetInfo = smallestInputSet +"," + biggestInputSet + "," + meanInputSetSize + "," + inputStdDev + ","
+        } else {
+            inputSetInfo = 0 +"," + 0 + "," + 0 + "," + 0 + ","
+        }
+        println(mainInfo + changeInfo, inputSetInfo)
     }
 }
 
