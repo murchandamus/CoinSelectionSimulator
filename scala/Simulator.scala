@@ -1,4 +1,5 @@
 import util.Random
+import scala.io.Source
 
 class Simulator(utxo: Set[(Int,Long)], operations: List[Long], descriptor: String) {
     val regularWallet = new Wallet("Regular", utxo,false, 1000) 
@@ -136,6 +137,21 @@ object Simulation {
             ops8 = nextOp :: ops8
         }
         val testCases8 = new Simulator(utxo8, ops8, "TESTCASE 8: Start with 1000 random UTXO from (2500 satoshi,0.1BTC), 10000 operations of 1-3 spending or receiving with Pareto distribution (540 satoshi,1BTC).")
+
+        var utxo9: Set[(Int,Long)] = Set()
+	var btc50: Long = (50*100*1000000).toLong
+        var utxo50btc = (1,btc50)
+        utxo9 = utxo9 + utxo50btc
+
+        var ops9: List[Long] = List()
+        var ops9reverse: List[Long] = List()
+        for(line <- Source.fromFile("ops9.txt").getLines()) {
+            var nextOp: Long = (line).toLong
+            ops9reverse = nextOp :: ops9reverse
+        }
+        ops9 = ops9reverse.reverse
+
+        val testCases9 = new Simulator(utxo9, ops9, "TESTCASE 9: Starts with one 50BTC UTXO, then performs all operations from MoneyPot.com's data.")
 println("--------------------------------------------------------------------------------------")
 println("---------------TEST CASE 1 STARTING---------------------------------------------------")
 println("--------------------------------------------------------------------------------------")
@@ -168,5 +184,9 @@ println("-----------------------------------------------------------------------
 println("---------------TEST CASE 8 STARTING---------------------------------------------------")
 println("--------------------------------------------------------------------------------------")
         testCases8.simulate()
+println("--------------------------------------------------------------------------------------")
+println("---------------TEST CASE 9 STARTING---------------------------------------------------")
+println("--------------------------------------------------------------------------------------")
+        testCases9.simulate()
     }
 }
