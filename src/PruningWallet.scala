@@ -1,9 +1,9 @@
 import util.Random
 
-class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLimit: Int) extends Wallet (name, utxoList, debug, knapsackLimit) {
+class PruningWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[Utxo], debug: Boolean, knapsackLimit: Int) extends Wallet (name, utxoList, debug, knapsackLimit) {
     override def spend(target: Long) {
         val starttime: Long = System.currentTimeMillis
-        var selectedCoins: Set[(Int, Long)] = Set()
+        var selectedCoins: Set[Utxo] = Set()
         val bestSingleUtxo = findMinimalSingleInput(target)
         var selectionFinished: Boolean = false
         //Case 0: Spend target bigger than wallet content
@@ -11,7 +11,7 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
             selectionFinished = true
         }
         //Case 1: pool contains target
-        if(bestSingleUtxo._2 == target) {
+        if(bestSingleUtxo.value == target) {
             selectedCoins = Set(bestSingleUtxo)
             selectionFinished = true
             if(debug == true) {
@@ -21,10 +21,10 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
 
         //Case 2: All utxo smaller than target match target
         if(true != selectionFinished) {
-            var smallerElements = utxoPool.filter(x =>x._2 < target)
+            var smallerElements = utxoPool.filter(x =>x.value < target)
             var sum : Long = 0
             for(small <- smallerElements) {
-                sum = sum + small._2
+                sum = sum + small.value
             }
             if(sum == target) {
                 selectedCoins = smallerElements
@@ -33,11 +33,11 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
                     println(name + " matched " + target + " by combining all UTXO smaller than target.")
                 }
             } else if (sum < target) {
-        //Case 3: Sum of smaller UTXO is not sufficient, IN DOUBLE WALLET try to Double target here instead!
-                //selectedCoins = Set(bestSingleUtxo)
-                //selectionFinished = true
+        //Case 3: Sum of smaller UTXO is not sufficient
+                selectedCoins = Set(bestSingleUtxo)
+                selectionFinished = true
                 if(debug == true) {
-                    println(name + " didn't contain a combination of smaller UTXO to supersede " + target + ". Going to Doubling Target.")
+                    println(name + " didn't contain a combination of smaller UTXO to supersede " + target + ". Defaulting to smallest sufficient UTXO.")
                 }
             }
         }
@@ -45,8 +45,7 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
         if(!selectionFinished) {
             val bestCombination = knapsack(target, knapsackLimit)
             val total = selectionTotal(bestCombination)
-            val bestSingleUtxo = findMinimalSingleInput(target*2)
-            if(bestSingleUtxo._2 >= total) {
+            if(bestSingleUtxo.value >= total) {
                 selectedCoins = bestCombination
             } else {
         //Case 4a) Smallest sufficient is better than Knapsack result
@@ -55,17 +54,17 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
             selectionFinished = true
         }
 
-        var change : Long = selectionTotal(selectedCoins) - target
+        var change = selectionTotal(selectedCoins) - target
 
         if(debug == true) {
             println(name + " had selected " + selectedCoins.size + " coins before pruning.")
         }
 
-        if(prune && change > target) {
+        if(prune && change > 0) {
             for(coin <- selectedCoins) {
-                if(coin._2 <= change - target*3/4 && selectedCoins.size > minInputs) {
-                    println(name + " pruned input with " + coin._2 + " because it was smaller than change of " + change + ".")
-                    change -= coin._2
+                if(coin.value <= change && selectedCoins.size > minInputs) {
+                    println(name + " pruned input with " + coin.value + " because it was smaller than change of " + change + ".")
+                    change -= coin.value
                     selectedCoins = selectedCoins - coin
                 }
             }
@@ -97,7 +96,7 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
             var expected = utxoPoolSizeBefore - selectedCoins.size 
             println("ERROR: utxoPool.size was " + utxoPoolSizeBefore + " and is now " + utxoPoolSizeAfter +". It should be " + expected + " instead though.")
         }
-        val duration = (System.currentTimeMillis) - starttime  
+        val duration = (System.currentTimeMillis) - starttime 
         println("To spend " + target + ", " + name + " selected " + selectedCoins.size + " inputs, with a total value of " + selectionTotal(selectedCoins) + " satoshi. The change was " + change + ". The wallet now has " + utxoPool.size + " utxo, worth "+ getWalletTotal() + " satoshi. It took " + duration + "ms to calculate.")
         if(change > 0) {
             receive(change)
@@ -105,8 +104,8 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
         }
     }
 
-    override def knapsack(target: Long, tries: Int) : Set[(Int,Long)] = {
-        var bestSelection: Set[(Int,Long)] = Set()
+    override def knapsack(target: Long, tries: Int) : Set[Utxo] = {
+        var bestSelection: Set[Utxo] = Set()
         var bestTotal: Long = getWalletTotal+1
         val rnd = new Random()
         val utxoVec = utxoPool.toArray
@@ -114,45 +113,7 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
         for( i <- 1 to tries) {
             var total : Long = 0
             var selected: Vector[Boolean] = Vector.fill(utxoVec.size)(false)
-            var currentSelection: Set[(Int,Long)] = Set()
-            if(target*2 < getWalletTotal) {
-                while (total < target*2) {
-                    val randomIndex = rnd.nextInt(utxoPool.size)
-                    if(selected(randomIndex) == false) {
-                        selected=selected.updated(randomIndex,true) 
-
-                        val randomUtxo = utxoVec(randomIndex)
-                        currentSelection = currentSelection + randomUtxo
-
-                        if(debug == true) {
-                            println(name + " randomed " + randomUtxo + ". Combination is now " + currentSelection + " in try number " + i + ".")
-                        }
-                        total = total + randomUtxo._2
-                        if(total > target*2) {
-                            total = selectionTotal(currentSelection)
-                        }
-                    }
-                }
-
-                if(debug) {
-                    println(name + " had selected " + currentSelection.size + " coins before pruning.")
-                }
-                var change : Long = total - target
-                if(prune && change > target) {
-                    for(coin <- currentSelection) {
-                        if(coin._2 <= change - target && currentSelection.size > minInputs) {
-                            if(debug) {
-                                println(name + " pruned input with " + coin._2 + " because it was smaller than change of " + change + ".")
-                            }
-                            change -= coin._2
-                            currentSelection = currentSelection - coin
-                        }
-                    }
-                }
-                if(debug) {
-                    println(name + " has selected " + currentSelection.size + " coins after pruning.")
-                }
-            } else {
+            var currentSelection: Set[Utxo] = Set()
             while (total < target) {
                 val randomIndex = rnd.nextInt(utxoPool.size)
                 if(selected(randomIndex) == false) {
@@ -164,7 +125,7 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
                     if(debug == true) {
                         println(name + " randomed " + randomUtxo + ". Combination is now " + currentSelection + " in try number " + i + ".")
                     }
-                    total = total + randomUtxo._2
+                    total = total + randomUtxo.value
                     if(total > target) {
                         total = selectionTotal(currentSelection)
                     }
@@ -177,19 +138,17 @@ class DoubleWallet(name: String, prune: Boolean, minInputs: Int, utxoList: Set[(
             var change = total - target
             if(prune && change > 0) {
                 for(coin <- currentSelection) {
-                    if(coin._2 <= change && currentSelection.size > minInputs) {
+                    if(coin.value <= change && currentSelection.size > minInputs) {
                         if(debug) {
-                            println(name + " pruned input with " + coin._2 + " because it was smaller than change of " + change + ".")
+                            println(name + " pruned input with " + coin.value + " because it was smaller than change of " + change + ".")
                         }
-                        change -= coin._2
+                        change -= coin.value
                         currentSelection = currentSelection - coin
                     }
                 }
             }
             if(debug) {
                 println(name + " has selected " + currentSelection.size + " coins after pruning.")
-            }
-
             }
 
             total = selectionTotal(currentSelection)
