@@ -4,13 +4,17 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: String) {
-// THESE WALLETS WERE TO TEST DIFFERENT MIN_CHANGE FOR BITCOIN CORE
     //    val coreWallet = new CoreWallet("CoreWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
     //    val coreWalletOutput = new CoreWallet("CoreWalletDonateOutputCost", utxo, WalletConstants.FEE_PER_KILOBYTE, false, WalletConstants.OUTPUT_COST)
     //    val coreWalletInput = new CoreWallet("CoreWalletDonateInputCost", utxo, WalletConstants.FEE_PER_KILOBYTE, false, WalletConstants.INPUT_COST)
     //    val coreWalletDust = new CoreWallet("CoreWalletDonateDustLimit", utxo, WalletConstants.FEE_PER_KILOBYTE, false, WalletConstants.DUST_LIMIT)
 
-          val myceliumWallet = new MyceliumWallet("MyceliumWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+    //val myceliumWallet = new MyceliumWallet("MyceliumWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+    val bnbWallet = new BnBWallet("BranchAndBoundWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+    val bnbWallet2 = new BnBWallet("BranchAndBoundWallet2", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+    val bnbWallet3 = new BnBWallet("BranchAndBoundWallet3", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+    val bnbWallet4 = new BnBWallet("BranchAndBoundWallet4", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+    val bnbWallet5 = new BnBWallet("BranchAndBoundWallet5", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
     //    val breadWallet = new BreadWallet("BreadWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
     //    val androidWallet = new AndroidWallet("AndroidWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
     //    val randomWallet = new RandomWallet("RandomWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
@@ -18,7 +22,6 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     // val avTargetWallet = new AvTargetWallet("AvTargetWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
 
     /*
-TESTING RANDOMWALLET WITH DIFFERENT MIN_CHANGES
     val randomWallet0Z = new RandomWallet("RandomWallet0Z", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 0)
     val randomWallet1Z = new RandomWallet("RandomWallet1Z", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 10)
     val randomWallet2Z = new RandomWallet("RandomWallet2Z", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100)
@@ -35,7 +38,7 @@ TESTING RANDOMWALLET WITH DIFFERENT MIN_CHANGES
     //    var wallets: List[AbstractWallet] = List(coreWallet, myceliumWallet, breadWallet, androidWallet, randomWallet, doubleWallet)
     //    var wallets: List[AbstractWallet] = List(randomWallet0Z, randomWallet1Z, randomWallet2Z, randomWallet3Z, randomWallet4Z, randomWallet5Z, randomWallet6Z, randomWallet7Z, randomWallet8Z)
     //   var wallets: List[AbstractWallet] = List(coreWallet, coreWalletOutput, coreWalletInput, coreWalletDust)
-    var wallets: List[AbstractWallet] = List(myceliumWallet)
+    var wallets: List[AbstractWallet] = List(bnbWallet, bnbWallet2, bnbWallet3, bnbWallet4, bnbWallet5)
 
     def simulate() {
         currentLowestBalance = 0
