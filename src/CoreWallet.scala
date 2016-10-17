@@ -30,7 +30,7 @@ class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boole
 
     def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
         //currentTransactionFee = 0 <--- This would be an accurate depiction of CoreWallet, but really there aren't any zero-fee transactions anymore. Therefore:
-        currentTransactionFee = WalletConstants.ONE_ONE_TX_MIN_FEE
+        currentTransactionFee = WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE
         var selectionSuccess: Boolean = false
         var adjustedTarget = target
         var selection: Set[Utxo] = Set()

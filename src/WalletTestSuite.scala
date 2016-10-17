@@ -18,7 +18,7 @@ abstract class WalletTestSuite extends FunSuite with BeforeAndAfterEach {
 
     test("Swipe wallet with single UTXO") {
         wallet.receive(WalletConstants.CENT, 0, false)
-        wallet.spend(WalletConstants.CENT - WalletConstants.ONE_ONE_TRANSACTION_SIZE * WalletConstants.FEE_PER_KILOBYTE / 1000, 1)
+        wallet.spend(WalletConstants.CENT - WalletConstants.ONE_IN_ONE_OUT_TRANSACTION_SIZE * WalletConstants.FEE_PER_KILOBYTE / 1000, 1)
         assert(wallet.getWalletTotal() == 0)
     }
 

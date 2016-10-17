@@ -17,7 +17,7 @@ class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolea
         var selectedCoins: Set[Utxo] = Set()
         var smallerCoins: Set[Utxo] = Set()
 
-        var adjustedTarget = target + WalletConstants.ONE_ONE_TRANSACTION_SIZE * feePerKB / 1000
+        var adjustedTarget = target + WalletConstants.ONE_IN_ONE_OUT_TRANSACTION_SIZE * feePerKB / 1000
 
         for (utxo <- utxoPool) {
             if (utxo.value >= adjustedTarget && utxo.value <= adjustedTarget + extraCostForChange) {
@@ -28,15 +28,15 @@ class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolea
         }
 
         val smallerCoinsTotal = selectionTotal(smallerCoins)
-        val costToSpendSmallerCoins = +(WalletConstants.ONE_ONE_TRANSACTION_SIZE + (smallerCoins.size - 1) * WalletConstants.BYTES_PER_INPUT) * feePerKB / 1000
+        val costToSpendSmallerCoins = (WalletConstants.ONE_IN_ONE_OUT_TRANSACTION_SIZE + (smallerCoins.size - 1) * WalletConstants.BYTES_PER_INPUT) * feePerKB / 1000
         if (smallerCoinsTotal >= target + costToSpendSmallerCoins
             && smallerCoinsTotal <= target + costToSpendSmallerCoins + extraCostForChange) {
             return smallerCoins
         }
 
+        // Try Branch-and-Bound
         val utxoVec = smallerCoins.toArray
         val utxoVecSorted = utxoVec.sortWith(_.value > _.value)
-
         branchAndBoundTries = 1000000
         selectedCoins = branchAndBound(100, 0, Set[Utxo](), 0, target, utxoVecSorted, feePerKB)
 
@@ -56,25 +56,25 @@ class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolea
         return selectedCoins
     }
 
-    def branchAndBound(maxInputs: Int, depth: Int, selectedSoFar: Set[Utxo], valSoFar: Long, target: Long, utxoVecSorted: Array[Utxo], feePerKB: Long): Set[Utxo] = {
+    def branchAndBound(maxInputs: Int, depth: Int, selectedCoins: Set[Utxo], effectiveValueSelected: Long, target: Long, utxoVecSorted: Array[Utxo], feePerKB: Long): Set[Utxo] = {
         branchAndBoundTries -= 1
-        if (valSoFar > target + WalletConstants.ONE_ONE_TX_MIN_FEE - COST_PER_INPUT + extraCostForChange) {
+        if (effectiveValueSelected > target + WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE - COST_PER_INPUT + extraCostForChange) {
             return Set()
-        } else if (valSoFar >= target + WalletConstants.ONE_ONE_TX_MIN_FEE - COST_PER_INPUT) {
-            println(name + " matched " + target + " with " + selectedSoFar + " in Branch-and-Bound at depth " + depth + ".")
-            return selectedSoFar
+        } else if (effectiveValueSelected >= target + WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE - COST_PER_INPUT) {
+            println(name + " matched " + target + " with " + selectedCoins + " in Branch-and-Bound at depth " + depth + ".")
+            return selectedCoins
         } else if (branchAndBoundTries <= 0) {
             return Set()
         } else if (depth >= utxoVecSorted.size) {
             return Set()
-        } else if (maxInputs == selectedSoFar.size) {
+        } else if (maxInputs == selectedCoins.size) {
             return Set()
         } else {
-            var withThis = branchAndBound(maxInputs, depth + 1, selectedSoFar + utxoVecSorted(depth), valSoFar + utxoVecSorted(depth).value - COST_PER_INPUT, target, utxoVecSorted, feePerKB)
+            var withThis = branchAndBound(maxInputs, depth + 1, selectedCoins + utxoVecSorted(depth), effectiveValueSelected + utxoVecSorted(depth).value - COST_PER_INPUT, target, utxoVecSorted, feePerKB)
             if (withThis != Set()) {
                 return withThis
             } else {
-                var withoutThis = branchAndBound(maxInputs, depth + 1, selectedSoFar, valSoFar, target, utxoVecSorted, feePerKB)
+                var withoutThis = branchAndBound(maxInputs, depth + 1, selectedCoins, effectiveValueSelected, target, utxoVecSorted, feePerKB)
                 if (withoutThis != Set()) {
                     return withoutThis
                 }
