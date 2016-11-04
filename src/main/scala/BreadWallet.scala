@@ -1,17 +1,16 @@
+package main.scala
 
-class AndroidWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean) extends AbstractWallet(name, utxoList, feePerKB, debug) {
+class BreadWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean) extends AbstractWallet(name, utxoList, feePerKB, debug) {
     val MIN_CHANGE_BEFORE_ADDING_TO_FEE = WalletConstants.DUST_LIMIT
 
     def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
-
         if (debug == true) {
-            println(name + " is selecting for " + target + " in block " + nLockTime)
+            println(name + " is selecting for " + target)
         }
         var selectedCoins: Set[Utxo] = Set()
-        var sortedUtxo = utxoPool.toList.sortWith(_.value > _.value)
-        sortedUtxo = sortedUtxo.sortWith(_.getCoinAge(nLockTime) > _.getCoinAge(nLockTime))
+        var sortedUtxo = utxoPool.toList.sortBy(_.id)
 
-        while (selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB)) {
+        while (sortedUtxo.nonEmpty && selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB)) {
             selectedCoins += sortedUtxo.head
             if (debug == true) {
                 println(name + " added " + sortedUtxo.head + ". Combination is now " + selectedCoins + ".")

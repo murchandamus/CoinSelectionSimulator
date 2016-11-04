@@ -1,3 +1,4 @@
+package main.scala
 import util.Random
 
 class RandomWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, minChange: Long = 0) extends AbstractWallet(name, utxoList, feePerKB, debug) {

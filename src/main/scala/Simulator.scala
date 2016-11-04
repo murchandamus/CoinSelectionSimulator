@@ -1,7 +1,8 @@
+package main.scala
+
 import util.Random
 import scala.collection.mutable.Queue
 import scala.collection.mutable.ListBuffer
-import scala.io.Source
 
 class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: String) {
     //    val coreWallet = new CoreWallet("CoreWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)

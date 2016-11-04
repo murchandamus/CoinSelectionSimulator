@@ -1,3 +1,4 @@
+package main.scala
 
 class DoubleWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean) extends CoreWallet(name, utxoList, feePerKB, debug) {
 

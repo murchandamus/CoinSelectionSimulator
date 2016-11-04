@@ -1,4 +1,4 @@
-import scala.collection.mutable.ListBuffer
+package main.scala
 
 class AvTargetWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean) extends CoreWallet(name, utxoList, feePerKB, debug) {
     var targetsTotal: Long = 0

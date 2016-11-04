@@ -1,4 +1,5 @@
-import util.Random
+package main.scala
+
 import scala.collection.mutable.ListBuffer
 
 abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var feePerKB: Long = WalletConstants.FEE_PER_KILOBYTE, var debug: Boolean = false) {

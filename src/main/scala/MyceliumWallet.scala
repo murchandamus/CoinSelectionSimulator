@@ -1,3 +1,4 @@
+package main.scala
 
 class MyceliumWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean) extends AbstractWallet(name, utxoList, feePerKB, debug) {
     val MIN_CHANGE_BEFORE_ADDING_TO_FEE: Long = 5460

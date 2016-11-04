@@ -1,3 +1,5 @@
+package main.scala
+
 import util.Random
 
 class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLimit: Int) {

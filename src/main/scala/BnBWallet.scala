@@ -1,3 +1,5 @@
+package main.scala
+
 import util.Random
 
 class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, minChange: Long = 100000) extends AbstractWallet(name, utxoList, feePerKB, debug) {

@@ -1,3 +1,5 @@
+package main.scala
+
 object WalletConstants {
     val CENT: Long = 1000000
     val COIN: Long = 100 * CENT

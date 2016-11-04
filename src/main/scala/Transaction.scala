@@ -1,3 +1,5 @@
+package main.scala
+
 class Transaction(val walletName: String, val target: Long, val change: Long, val fee: Long, val inputSet: Set[Utxo], val block: Int, val duration: Long) {
     var inputsValue: Long = 0
     inputSet.foreach(inputsValue += _.value)
