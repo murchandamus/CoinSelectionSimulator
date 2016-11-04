@@ -12,7 +12,7 @@ class PriorityWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: B
         var sortedUtxo = utxoPool.toList.sortWith(_.value > _.value)
         sortedUtxo = sortedUtxo.sortWith(_.getCoinAge(nLockTime) > _.getCoinAge(nLockTime))
 
-        while (selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB)) {
+        while (sortedUtxo.nonEmpty &&selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB)) {
             selectedCoins += sortedUtxo.head
             if (debug == true) {
                 println(name + " added " + sortedUtxo.head + ". Combination is now " + selectedCoins + ".")

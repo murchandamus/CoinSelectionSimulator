@@ -147,7 +147,9 @@ abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var fee
 
     def selectionTotal(selection: Set[Utxo]): Long = {
         var totalValue: Long = 0
-        selection.foreach(totalValue += _.value)
+        if(selection.nonEmpty) {
+          selection.foreach(totalValue += _.value)
+        }
         return totalValue
     }
 
