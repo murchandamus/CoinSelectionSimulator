@@ -1,15 +1,15 @@
-import org.scalatest
+package test.scala
+
 import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfterEach
+import main.scala.AbstractWallet
+import main.scala.BreadWallet
 import main.scala.CoreWallet
 import main.scala.DoubleWallet
-import main.scala.AbstractWallet
-import main.scala.WalletConstants
 import main.scala.MyceliumWallet
-import main.scala.BreadWallet
 import main.scala.PriorityWallet
 import main.scala.RandomWallet
-import main.scala.PriorityWallet
+import main.scala.WalletConstants
 
 abstract class WalletTestSuite extends FunSuite with BeforeAndAfterEach {
     var wallet: AbstractWallet = new CoreWallet("CoreWallet", Set(), 0, false)
