@@ -36,7 +36,7 @@ class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolea
         val lookaheadVec = lookaheadList.toArray
 
         branchAndBoundTries = 1000000
-        selectedCoins = branchAndBound(100, 0, Set[Utxo](), 0, target, utxoVecSorted, feePerKB)
+        selectedCoins = branchAndBound(100, 0, Set[Utxo](), 0, target, utxoVecSorted, lookaheadVec, feePerKB)
 
         //Else select randomly.
         if (selectedCoins == Set()) {
@@ -54,13 +54,15 @@ class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolea
         return selectedCoins
     }
 
-    def branchAndBound(maxInputs: Int, depth: Int, selectedCoins: Set[Utxo], effectiveValueSelected: Long, target: Long, utxoVecSorted: Array[Utxo], feePerKB: Long): Set[Utxo] = {
+    def branchAndBound(maxInputs: Int, depth: Int, selectedCoins: Set[Utxo], effectiveValueSelected: Long, target: Long, utxoVecSorted: Array[Utxo], lookaheadVec: Array[Long], feePerKB: Long): Set[Utxo] = {
         branchAndBoundTries -= 1
         if (effectiveValueSelected > target + WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE - COST_PER_INPUT + extraCostForChange) {
             return Set()
         } else if (effectiveValueSelected >= target + WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE - COST_PER_INPUT) {
             println(name + " matched " + target + " with " + selectedCoins + " in Branch-and-Bound at depth " + depth + ".")
             return selectedCoins
+        } else if (effectiveValueSelected + lookaheadVec[depth + 1] < target + WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE - COST_PER_INPUT) {
+            return Set()
         } else if (branchAndBoundTries <= 0) {
             return Set()
         } else if (depth >= utxoVecSorted.size) {
