@@ -11,11 +11,14 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     //    val coreWalletDust = new CoreWallet("CoreWalletDonateDustLimit", utxo, WalletConstants.FEE_PER_KILOBYTE, false, WalletConstants.DUST_LIMIT)
 
     //val myceliumWallet = new MyceliumWallet("MyceliumWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
-    val bnbWallet = new BnBWallet("BranchAndBoundWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
-    val bnbWallet2 = new BnBWallet("BranchAndBoundWallet2", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
-    val bnbWallet3 = new BnBWallet("BranchAndBoundWallet3", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
-    val bnbWallet4 = new BnBWallet("BranchAndBoundWallet4", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
-    val bnbWallet5 = new BnBWallet("BranchAndBoundWallet5", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+      val bnbWallet = new BnBWallet("BranchAndBoundWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+      val eBnbWallet = new EfficientBnB("EfficientBnBWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+      val lfWallet = new LargestFirstWallet("LargestFirstWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+      val bjWallet = new BlackjackWallet("BlackjackWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+ //   val bnbWallet2 = new BnBWallet("BranchAndBoundWallet2", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+  //  val bnbWallet3 = new BnBWallet("BranchAndBoundWallet3", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+   // val bnbWallet4 = new BnBWallet("BranchAndBoundWallet4", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+   // val bnbWallet5 = new BnBWallet("BranchAndBoundWallet5", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
     //    val breadWallet = new BreadWallet("BreadWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
     //    val androidWallet = new AndroidWallet("AndroidWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
     //    val randomWallet = new RandomWallet("RandomWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
@@ -39,7 +42,7 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     //    var wallets: List[AbstractWallet] = List(coreWallet, myceliumWallet, breadWallet, androidWallet, randomWallet, doubleWallet)
     //    var wallets: List[AbstractWallet] = List(randomWallet0Z, randomWallet1Z, randomWallet2Z, randomWallet3Z, randomWallet4Z, randomWallet5Z, randomWallet6Z, randomWallet7Z, randomWallet8Z)
     //   var wallets: List[AbstractWallet] = List(coreWallet, coreWalletOutput, coreWalletInput, coreWalletDust)
-    var wallets: List[AbstractWallet] = List(bnbWallet, bnbWallet2, bnbWallet3, bnbWallet4, bnbWallet5)
+    var wallets: List[AbstractWallet] = List(bnbWallet, eBnbWallet, lfWallet, bjWallet)
 
     def simulate() {
         currentLowestBalance = 0

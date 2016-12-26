@@ -8,9 +8,10 @@ class BlackjackWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: 
             println(name + " is selecting for " + target)
         }
         var selectedCoins: Set[Utxo] = Set()
-        var sortedUtxo = utxoPool.toList.sortBy(_.value > _.value)
-        var notSelected = List[Utxo]
+        var sortedUtxo = utxoPool.toList.sortWith(_.value > _.value)
+        var notSelected: Set[Utxo] = Set() 
 
+        //First select largest that are smaller than remainder.
         while (sortedUtxo.nonEmpty && selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB)) {
             if(sortedUtxo.head.value < target - selectionTotal(selectedCoins)) {
                 selectedCoins += sortedUtxo.head
@@ -18,12 +19,21 @@ class BlackjackWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: 
                     println(name + " added " + sortedUtxo.head + ". Combination is now " + selectedCoins + ".")
                 }
             } else {
-                notSelected.add(sortedUtxo.head)
+                notSelected += sortedUtxo.head
             }
             sortedUtxo = sortedUtxo.drop(1)
         }
-    
-    // How did Daniel Cousens solve fee estimation?
+
+        sortedUtxo = notSelected.toList.sortWith(_.value > _.value)
+        //Then select largest that are available until sufficient to pay transaction.
+
+        while (sortedUtxo.nonEmpty && selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB)) {
+            selectedCoins += sortedUtxo.head
+            if (debug == true) {
+                println(name + " added " + sortedUtxo.head + " in LF second round. Combination is now " + selectedCoins + ".")
+            }
+            sortedUtxo = sortedUtxo.drop(1)
+        }
 
         return selectedCoins
     }

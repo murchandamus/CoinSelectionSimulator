@@ -89,3 +89,9 @@ class DoubleWalletTestSuite extends WalletTestSuite {
         wallet = new DoubleWallet("DoubleWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, true)
     }
 }
+
+class EffBnBTestSuite extends WalletTestSuite {
+    override def beforeEach() {
+        wallet = new EfficientBnB("EfficientBnBWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, true)
+    }
+}
