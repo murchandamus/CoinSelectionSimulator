@@ -1,4 +1,4 @@
-package main.scala
+
 
 import util.Random
 

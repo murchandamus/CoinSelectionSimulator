@@ -1,4 +1,4 @@
-package main.scala
+
 
 import scala.collection.mutable.ListBuffer
 import util.Random
@@ -103,7 +103,7 @@ object TestCaseMoneyPot50 extends Scenario(Set(), ListBuffer(), "TESTCASE 9: Sta
     var index = 1
     var nLockTime = 1
 
-    for (line <- Source.fromFile("../resources/scenarios/moneypot.csv").getLines()) {
+    for (line <- Source.fromFile("scenarios/moneypot.csv").getLines()) {
         var nextOp: Long = (line).toLong
         nLockTime = math.max(0, ((rnd.nextGaussian() + 1) * 10).toInt) + nLockTime
         operations += new Payment(index, nextOp, nLockTime)
@@ -120,7 +120,7 @@ object TestCaseMoneyPot15 extends Scenario(Set(), ListBuffer(), "TESTCASE 10: St
     var index = 1
     var nLockTime = 1
 
-    for (line <- Source.fromFile("../resources/scenarios/moneypot.csv").getLines()) {
+    for (line <- Source.fromFile("scenarios/moneypot.csv").getLines()) {
         var nextOp: Long = (line).toLong
         nLockTime = math.max(0, ((rnd.nextGaussian() + 1) * 10).toInt) + nLockTime
         operations += new Payment(index, nextOp, nLockTime)
@@ -137,7 +137,7 @@ object TestCaseMoneyPot15Coins extends Scenario(Set(), ListBuffer(), "TESTCASE 1
     var index = 1
     var nLockTime = 1
 
-    for (line <- Source.fromFile("../resources/scenarios/moneypot.csv").getLines()) {
+    for (line <- Source.fromFile("scenarios/moneypot.csv").getLines()) {
         var nextOp: Long = (line).toLong
         nLockTime = math.max(0, ((rnd.nextGaussian() + 1) * 10).toInt) + nLockTime
         operations += new Payment(index, nextOp, nLockTime)
@@ -151,7 +151,7 @@ object TestCaseMoneyPotEmpty extends Scenario(Set(), ListBuffer(), "TESTCASE 12:
     var index = 1
     var nLockTime = 1
 
-    for (line <- Source.fromFile("../resources/scenarios/moneypot.csv").getLines()) {
+    for (line <- Source.fromFile("scenarios/moneypot.csv").getLines()) {
         var nextOp: Long = (line).toLong
         nLockTime = math.max(0, ((rnd.nextGaussian() + 1) * 10).toInt) + nLockTime
         operations += new Payment(index, nextOp, nLockTime)
@@ -166,7 +166,7 @@ object BalancedInputsOutputs extends Scenario(Set(), ListBuffer(), "TESTCASE 13:
     var nLockTime = 1
     var tempOp : Long = 0
 
-    for (line <- Source.fromFile("../resources/scenarios/moneypot.csv").getLines()) {
+    for (line <- Source.fromFile("scenarios/moneypot.csv").getLines()) {
         var nextOp: Long = (line).toLong
 
         // Either stores an incoming payment, or combines two incoming payments to one
@@ -193,7 +193,7 @@ object MPRepeated extends Scenario(Set(), ListBuffer(), "TESTCASE 14: Empty Wall
     var nLockTime = 1
 
     for(i <- 1 to 2) {
-        for (line <- Source.fromFile("../resources/scenarios/moneypot.csv").getLines()) {
+        for (line <- Source.fromFile("scenarios/moneypot.csv").getLines()) {
             var nextOp: Long = (line).toLong
             nLockTime = math.max(0, ((rnd.nextGaussian() + 1) * 10).toInt) + nLockTime
             operations += new Payment(index, nextOp, nLockTime)

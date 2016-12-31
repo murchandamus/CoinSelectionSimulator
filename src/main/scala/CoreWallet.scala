@@ -1,5 +1,3 @@
-package main.scala
-
 import util.Random
 
 class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, directMatchWidth: Long = 0) extends AbstractWallet(name, utxoList, feePerKB, debug) {
@@ -34,13 +32,17 @@ class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boole
         //currentTransactionFee = 0 <--- This would be an accurate depiction of CoreWallet, but really there aren't any zero-fee transactions anymore. Therefore:
         currentTransactionFee = WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE
         var selectionSuccess: Boolean = false
+        var insufficientFunds: Boolean = false
         var adjustedTarget = target
         var selection: Set[Utxo] = Set()
 
-        while (!selectionSuccess) {
+        while (!selectionSuccess && !insufficientFunds) {
             adjustedTarget = target + currentTransactionFee
 
             selection = selectCoinsMinConf(adjustedTarget)
+            if(selection == null) {
+                insufficientFunds = true
+            }
 
             var change = Math.max(0, selectionTotal(selection) - target - currentTransactionFee)
             if (change <= WalletConstants.DUST_LIMIT) {
@@ -48,7 +50,10 @@ class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boole
                 change = 0
             }
 
-            var requiredFee: Long = estimateRequiredFee(selection.size, feePerKB, change > 0)
+            var requiredFee: Long = 0
+            if(selection != null) {
+                requiredFee = estimateRequiredFee(selection.size, feePerKB, change > 0)
+            }
 
             //if (selectionTotal(selection) - requiredFee < target) {
             if (selectionTotal(selection) - currentTransactionFee < target || requiredFee > currentTransactionFee) {
@@ -105,8 +110,12 @@ class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boole
             if (debug == true) {
                 println(name + " didn't contain a combination of smaller UTXO to supersede " + adjustedTarget + ". Defaulting to smallest sufficient UTXO.")
             }
+            if(bestSingleUtxo == null) {
+                return null
+            } else {
             return Set(bestSingleUtxo)
         }
+}
 
         //Case 4: Knapsack variants
         var knapsackSelection: Set[Utxo] = knapsack(adjustedTarget, smallerCoins, DIRECT_MATCH_ALLOWANCE)

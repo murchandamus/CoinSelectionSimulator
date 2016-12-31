@@ -1,5 +1,3 @@
-package main.scala
-
 import scala.collection.mutable.ListBuffer
 
 abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var feePerKB: Long = WalletConstants.FEE_PER_KILOBYTE, var debug: Boolean = false) {
@@ -147,7 +145,7 @@ abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var fee
 
     def selectionTotal(selection: Set[Utxo]): Long = {
         var totalValue: Long = 0
-        if(selection.nonEmpty) {
+        if(selection != null && selection.nonEmpty) {
           selection.foreach(totalValue += _.value)
         }
         return totalValue

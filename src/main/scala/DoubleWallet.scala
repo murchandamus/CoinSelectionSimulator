@@ -1,5 +1,3 @@
-package main.scala
-
 class DoubleWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean) extends CoreWallet(name, utxoList, feePerKB, debug) {
 
     override def spend(target: Long, nLockTime: Int) {
@@ -21,10 +19,11 @@ class DoubleWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
         var change: Long = selectionTotal(selectedCoins) - target - fee
 
         val duration = (System.currentTimeMillis) - starttime
-
-        var tx = new Transaction(name, target, change, fee, selectedCoins, nLockTime, duration)
-        executeTransaction(tx)
-        utxoSetSizes += utxoPool.size
-        inTransitRatio += change.toDouble / getWalletTotal()
+        if(selectedCoins != null && selectedCoins.nonEmpty) {
+            var tx = new Transaction(name, target, change, fee, selectedCoins, nLockTime, duration)
+            executeTransaction(tx)
+            utxoSetSizes += utxoPool.size
+            inTransitRatio += change.toDouble / getWalletTotal()
+        }
     }
 }

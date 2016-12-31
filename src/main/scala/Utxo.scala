@@ -1,4 +1,4 @@
-package main.scala
+
 
 class Utxo(val id: Int = -1, val value: Long = Long.MaxValue, val block: Int = 0) {
 
