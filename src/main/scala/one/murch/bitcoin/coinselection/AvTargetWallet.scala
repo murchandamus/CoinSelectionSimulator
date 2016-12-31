@@ -1,10 +1,12 @@
+package one.murch.bitcoin.coinselection
+
 class AvTargetWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean) extends CoreWallet(name, utxoList, feePerKB, debug) {
     var targetsTotal: Long = 0
     var numTargets: Int = 0
 
     override def spend(target: Long, nLockTime: Int) {
         if (target > getWalletTotal()) {
-            throw new IllegalArgumentException("Wallet was requested to spend " + target + " but only contained " + getWalletTotal() + ".");
+            throw new IllegalArgumentException("one.murch.bitcoin.coinselection.Wallet was requested to spend " + target + " but only contained " + getWalletTotal() + ".");
         }
 
         val starttime: Long = System.currentTimeMillis

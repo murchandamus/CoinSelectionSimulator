@@ -1,3 +1,5 @@
+package one.murch.bitcoin.coinselection
+
 import scala.collection.mutable.ListBuffer
 
 abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var feePerKB: Long = WalletConstants.FEE_PER_KILOBYTE, var debug: Boolean = false) {
@@ -62,7 +64,7 @@ abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var fee
 
     def spend(target: Long, nLockTime: Int) {
         if (target > getWalletTotal()) {
-            throw new IllegalArgumentException("Wallet was requested to spend " + target + " but only contained " + getWalletTotal() + ".");
+            throw new IllegalArgumentException("one.murch.bitcoin.coinselection.Wallet was requested to spend " + target + " but only contained " + getWalletTotal() + ".");
         }
         val starttime: Long = System.currentTimeMillis
         var selectedCoins: Set[Utxo] = selectCoins(target, feePerKB, nLockTime)
@@ -156,7 +158,7 @@ abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var fee
     }
 
     def printStatusHeader() {
-        println("Wallet Type;final value;mean #UTXO;final #UTXO;#received;#spent;"
+        println("one.murch.bitcoin.coinselection.Wallet Type;final value;mean #UTXO;final #UTXO;#received;#spent;"
             + "#changes created;smallest change;biggest change;mean change;stDev of change;in transit ratio;"
             + "total fees;average fees;fees to spend remaining UTXO;total cost;"
             + "smallest input set;biggest input set;mean size of input set;stdev of input set size")

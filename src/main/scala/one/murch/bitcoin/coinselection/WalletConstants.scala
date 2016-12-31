@@ -1,5 +1,8 @@
+package one.murch.bitcoin.coinselection
 
-
+/**
+  * Created by murch on 31.12.16.
+  */
 object WalletConstants {
     val CENT: Long = 1000000
     val COIN: Long = 100 * CENT

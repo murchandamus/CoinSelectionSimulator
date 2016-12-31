@@ -1,7 +1,9 @@
+package one.murch.bitcoin.coinselection
+
 import org.scalatest.{BeforeAndAfterEach, FunSuite}
 
 abstract class WalletTestSuite extends FunSuite with BeforeAndAfterEach {
-    var wallet: AbstractWallet = new CoreWallet("CoreWallet", Set(), 0, false)
+    var wallet: AbstractWallet = new CoreWallet("one.murch.bitcoin.coinselection.CoreWallet", Set(), 0, false)
 
     //Edge case checklist: Empty, non-empty, dust, greater than 32 bit
     test("getWalletTotal() on empty wallet") {
@@ -44,38 +46,38 @@ abstract class WalletTestSuite extends FunSuite with BeforeAndAfterEach {
 
 class MyceliumTestSuite extends WalletTestSuite {
     override def beforeEach() {
-        wallet = new MyceliumWallet("MyceliumWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, false)
+        wallet = new MyceliumWallet("one.murch.bitcoin.coinselection.MyceliumWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, false)
 
     }
 }
 
 class BreadWalletTestSuite extends WalletTestSuite {
     override def beforeEach() {
-        wallet = new BreadWallet("BreadWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, false)
+        wallet = new BreadWallet("one.murch.bitcoin.coinselection.BreadWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, false)
     }
 }
 
 class PriorityWalletTestSuite extends WalletTestSuite {
     override def beforeEach() {
-        wallet = new PriorityWallet("PriorityWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, false)
+        wallet = new PriorityWallet("one.murch.bitcoin.coinselection.PriorityWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, false)
     }
 }
 
 class MoneroWalletTestSuite extends WalletTestSuite {
     override def beforeEach() {
-        wallet = new RandomWallet("RandomWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, false)
+        wallet = new RandomWallet("one.murch.bitcoin.coinselection.RandomWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, false)
     }
 }
 
 class CoreWalletTestSuite extends WalletTestSuite {
     override def beforeEach() {
-        wallet = new CoreWallet("CoreWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, true)
+        wallet = new CoreWallet("one.murch.bitcoin.coinselection.CoreWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, true)
     }
 }
 
 class DoubleWalletTestSuite extends WalletTestSuite {
     override def beforeEach() {
-        wallet = new DoubleWallet("DoubleWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, true)
+        wallet = new DoubleWallet("one.murch.bitcoin.coinselection.DoubleWallet", Set(), WalletConstants.FEE_PER_KILOBYTE, true)
     }
 }
 

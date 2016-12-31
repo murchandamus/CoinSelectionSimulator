@@ -1,3 +1,5 @@
+package one.murch.bitcoin.coinselection
+
 
 
 class Transaction(val walletName: String, val target: Long, val change: Long, val fee: Long, val inputSet: Set[Utxo], val block: Int, val duration: Long) {
@@ -8,7 +10,7 @@ class Transaction(val walletName: String, val target: Long, val change: Long, va
     outputsValue += change
     outputsValue += fee
     if (inputsValue != outputsValue) {
-        println("ERROR: Transaction inputs and outputs don't match in value for " + walletName)
+        println("ERROR: one.murch.bitcoin.coinselection.Transaction inputs and outputs don't match in value for " + walletName)
     }
 
     def createTransactionReport() {

@@ -1,4 +1,6 @@
-import util.Random
+package one.murch.bitcoin.coinselection
+
+import scala.util.Random
 
 class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, directMatchWidth: Long = 0) extends AbstractWallet(name, utxoList, feePerKB, debug) {
     var MIN_CHANGE = WalletConstants.CENT
@@ -10,7 +12,7 @@ class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boole
 
     override def spend(target: Long, nLockTime: Int) {
         if (target > getWalletTotal()) {
-            throw new IllegalArgumentException("Wallet was requested to spend " + target + " but only contained " + getWalletTotal() + ".");
+            throw new IllegalArgumentException("one.murch.bitcoin.coinselection.Wallet was requested to spend " + target + " but only contained " + getWalletTotal() + ".");
         }
         val starttime: Long = System.currentTimeMillis
         var selectedCoins: Set[Utxo] = selectCoins(target, feePerKB, nLockTime)
@@ -29,7 +31,7 @@ class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boole
     }
 
     def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
-        //currentTransactionFee = 0 <--- This would be an accurate depiction of CoreWallet, but really there aren't any zero-fee transactions anymore. Therefore:
+        //currentTransactionFee = 0 <--- This would be an accurate depiction of one.murch.bitcoin.coinselection.CoreWallet, but really there aren't any zero-fee transactions anymore. Therefore:
         currentTransactionFee = WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE
         var selectionSuccess: Boolean = false
         var insufficientFunds: Boolean = false

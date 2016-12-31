@@ -1,8 +1,8 @@
+package one.murch.bitcoin.coinselection
 
-import util.Random
 
-class RandomWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, minChange: Long = 0) extends AbstractWallet(name, utxoList, feePerKB, debug) {
-    val MIN_CHANGE = minChange
+
+class PriorityWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean) extends AbstractWallet(name, utxoList, feePerKB, debug) {
     val MIN_CHANGE_BEFORE_ADDING_TO_FEE = WalletConstants.DUST_LIMIT
 
     def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
@@ -10,16 +10,16 @@ class RandomWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
         if (debug == true) {
             println(name + " is selecting for " + target + " in block " + nLockTime)
         }
-
         var selectedCoins: Set[Utxo] = Set()
-        var randomizedUtxo = Random.shuffle((utxoPool).toList)
+        var sortedUtxo = utxoPool.toList.sortWith(_.value > _.value)
+        sortedUtxo = sortedUtxo.sortWith(_.getCoinAge(nLockTime) > _.getCoinAge(nLockTime))
 
-        while (randomizedUtxo.nonEmpty && selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB) + MIN_CHANGE) {
-            selectedCoins += randomizedUtxo.head
+        while (sortedUtxo.nonEmpty &&selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB)) {
+            selectedCoins += sortedUtxo.head
             if (debug == true) {
-                println(name + " added " + randomizedUtxo.head + ". Combination is now " + selectedCoins + ".")
+                println(name + " added " + sortedUtxo.head + ". Combination is now " + selectedCoins + ".")
             }
-            randomizedUtxo = randomizedUtxo.drop(1)
+            sortedUtxo = sortedUtxo.drop(1)
         }
 
         return selectedCoins

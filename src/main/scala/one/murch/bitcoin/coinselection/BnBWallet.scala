@@ -1,4 +1,6 @@
-import util.Random
+package one.murch.bitcoin.coinselection
+
+import scala.util.Random
 
 class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, minChange: Long = 100000) extends AbstractWallet(name, utxoList, feePerKB, debug) {
     val MIN_CHANGE = minChange

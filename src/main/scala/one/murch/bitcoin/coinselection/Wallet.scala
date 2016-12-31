@@ -1,6 +1,8 @@
+package one.murch.bitcoin.coinselection
 
 
-import util.Random
+
+import scala.util.Random
 
 class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLimit: Int) {
     var countSpentUtxo: Int = 0
@@ -182,7 +184,7 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
     }
 
     def printStatusHeader() {
-        println("Wallet Type,final value,#UTXO,#received,#spent,#changes created,smallest change,biggest change,mean change,stDev of change,smallest input set, biggest input set, mean size of input set, stdev of input set size")
+        println("one.murch.bitcoin.coinselection.Wallet Type,final value,#UTXO,#received,#spent,#changes created,smallest change,biggest change,mean change,stDev of change,smallest input set, biggest input set, mean size of input set, stdev of input set size")
     }
 
     def printWalletStatus() {
