@@ -1,5 +1,7 @@
 package one.murch.bitcoin.coinselection
 
+import scala.collection.mutable.ListBuffer
+
 /**
   * Created by murch on 31.12.16.
   */

@@ -1,5 +1,6 @@
 package one.murch.bitcoin.coinselection
 
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 /**
