@@ -13,6 +13,7 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
 
     //val myceliumWallet = new MyceliumWallet("MyceliumWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       //val bnbWallet = new BnBWallet("BranchAndBoundWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+      val setrBnB= new StackEfficientTailRecursiveBnB("SETRBnB", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       val eBnbWallet = new EfficientBnB("EfficientBnBWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       val lfWallet = new LargestFirstWallet("LargestFirstWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       val bjWallet = new BlackjackWallet("BlackjackWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
@@ -49,7 +50,7 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     //    var wallets: List[AbstractWallet] = List(coreWallet, myceliumWallet, breadWallet, androidWallet, randomWallet, doubleWallet)
     //    var wallets: List[AbstractWallet] = List(randomWallet0Z, randomWallet1Z, randomWallet2Z, randomWallet3Z, randomWallet4Z, randomWallet5Z, randomWallet6Z, randomWallet7Z, randomWallet8Z)
     //   var wallets: List[AbstractWallet] = List(coreWallet, coreWalletOutput, coreWalletInput, coreWalletDust)
-    var wallets: List[AbstractWallet] = List(eBnbWallet, lfWallet, bjWallet, sfWallet, yfWallet, ofWallet, randomWallet0Z, randomWallet4Z, randomWallet6Z)
+    var wallets: List[AbstractWallet] = List(setrBnB, lfWallet, bjWallet, sfWallet, yfWallet, ofWallet, randomWallet0Z, randomWallet4Z, randomWallet6Z)
 
     def simulate() {
         currentLowestBalance = 0
