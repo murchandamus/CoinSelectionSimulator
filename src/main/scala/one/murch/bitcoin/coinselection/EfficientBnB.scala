@@ -65,11 +65,11 @@ class EfficientBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
         } else if (maxInputs == selectedCoins.size) {
             return Set()
         } else {
-            var withThis = branchAndBound(maxInputs, depth + 1, selectedCoins + utxoVecSorted(depth), effectiveValueSelected + utxoVecSorted(depth).value - COST_PER_INPUT, target, utxoVecSorted, lookaheadVec, feePerKB)
+            val withThis = branchAndBound(maxInputs, depth + 1, selectedCoins + utxoVecSorted(depth), effectiveValueSelected + utxoVecSorted(depth).value - COST_PER_INPUT, target, utxoVecSorted, lookaheadVec, feePerKB)
             if (withThis != Set()) {
                 return withThis
             } else {
-                var withoutThis = branchAndBound(maxInputs, depth + 1, selectedCoins, effectiveValueSelected, target, utxoVecSorted, lookaheadVec, feePerKB)
+                val withoutThis = branchAndBound(maxInputs, depth + 1, selectedCoins, effectiveValueSelected, target, utxoVecSorted, lookaheadVec, feePerKB)
                 if (withoutThis != Set()) {
                     return withoutThis
                 }
@@ -80,7 +80,7 @@ class EfficientBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
 
     def estimateFeeWithChange(target: Long, selectedCoins: Set[Utxo], feePerKB: Long): Long = {
         var fee: Long = 0
-        var transactionSize = WalletConstants.BYTES_TRANSACTION_OVERHEAD + selectedCoins.size * WalletConstants.BYTES_PER_INPUT + 2 * WalletConstants.BYTES_PER_OUTPUT
+        val transactionSize = WalletConstants.BYTES_TRANSACTION_OVERHEAD + selectedCoins.size * WalletConstants.BYTES_PER_INPUT + 2 * WalletConstants.BYTES_PER_OUTPUT
 
         fee += transactionSize * feePerKB / 1000
 

@@ -5,12 +5,18 @@ import scala.io.Source
 import scala.util.Random
 
 /**
-  * Created by murch on 31.12.16.
+  * Created by murch on 2017-01-19
   */
-object TestCaseMoneyPotEmpty extends Scenario(Set(), ListBuffer(), "TESTCASE 12: Starts with empty wallet, then performs all operations from MoneyPot.com's data.") {
+object MoneyPotAfterLF extends Scenario(Set(), ListBuffer(), "Imports final UTXO set of LF after running MP, then runs MP") {
     val rnd = new Random()
-
     var index = 1
+    for (line <- Source.fromResource("scenarios/UTXO-post-LF.csv").getLines()) {
+        val nextUTXO: Utxo = new Utxo(index, (line).toLong)
+        if(index < 30) {println("Loading UTXO for starting set: Index " + index + " Value " + nextUTXO.value)}
+        startingUtxoSet += nextUTXO
+        index += 1
+    }
+
     var nLockTime = 1
 
     for (line <- Source.fromResource("scenarios/moneypot.csv").getLines()) {
