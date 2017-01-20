@@ -6,6 +6,8 @@ class EfficientBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
     val MIN_CHANGE = minChange
     val MIN_CHANGE_BEFORE_ADDING_TO_FEE = WalletConstants.DUST_LIMIT
     var branchAndBoundTries = 0
+    var utxoVecSorted: Array[Utxo]
+    var lookaheadVec : Array[Long]
 
     var COST_PER_INPUT = WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
     val extraCostForChange = WalletConstants.BYTES_PER_OUTPUT + WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
@@ -18,16 +20,16 @@ class EfficientBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
 
         var selectedCoins: Set[Utxo] = Set()
 
-        var adjustedTarget = target + WalletConstants.ONE_IN_ONE_OUT_TRANSACTION_SIZE * feePerKB / 1000
+        var adjustedTarget = target + (WalletConstants.ONE_IN_ONE_OUT_TRANSACTION_SIZE - WalletConstants.BYTES_PER_INPUT) * feePerKB / 1000
 
         // Try Branch-and-Bound
         val utxoVec = utxoPool.toArray
-        val utxoVecSorted = utxoVec.sortWith(_.value > _.value)
+        utxoVecSorted = utxoVec.sortWith(_.value > _.value)
 
-        val lookaheadVec = createLookahead(utxoVecSorted, feePerKB)
+        lookaheadVec = createLookahead(utxoVecSorted, feePerKB)
 
         branchAndBoundTries = 1000000
-        selectedCoins = branchAndBound(100, 0, Set[Utxo](), 0, target, utxoVecSorted, lookaheadVec, feePerKB)
+        selectedCoins = branchAndBound(0, adjustedTarget)
 
         //Else select randomly.
         if (selectedCoins == Set()) {
@@ -45,31 +47,31 @@ class EfficientBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
         return selectedCoins
     }
 
-    def branchAndBound(maxInputs: Int, depth: Int, selectedCoins: Set[Utxo], effectiveValueSelected: Long, target: Long, utxoVecSorted: Array[Utxo], lookaheadVec: Array[Long], feePerKB: Long): Set[Utxo] = {
+    def branchAndBound(depth: Int, remainingValueToSelect: Long): Set[Utxo] = {
         branchAndBoundTries -= 1
-        if (effectiveValueSelected > target + WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE - COST_PER_INPUT + extraCostForChange) {
+        if (remainingValueToSelect  + extraCostForChange  < 0) {
+            // Cut: Selected more than target plus cost for change.
             return Set()
-        } else if (effectiveValueSelected >= target + WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE - COST_PER_INPUT) {
-                println(name + " matched " + target + " with " + selectedCoins + " in Branch-and-Bound at depth " + depth + ".")
+        } else if (remainingValueToSelect <= 0) {
+            println(name + " matched with donation of " + (remainingValueToSelect * -1) + " in Branch-and-Bound at depth " + depth + ".")
+            var selectedCoins: Set[Utxo] = Set()
+            selectedCoins += utxoVecSorted(depth)
             return selectedCoins
         } else if (branchAndBoundTries <= 0) {
             return Set()
         } else if (depth >= utxoVecSorted.size) {
             return Set()
-        } else if (effectiveValueSelected + lookaheadVec(depth) < target + WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE - COST_PER_INPUT) {
-            if(debug == true) {
-                println(name + " cut a branch at depth " + depth + " due to " + target + " exceeding the sum of selected " + effectiveValueSelected + " and lookahead " + lookaheadVec(depth) + ".")
-                println("Selection was " + selectedCoins)
+        } else if (remainingValueToSelect > lookaheadVec(depth)) {
+            if (debug == true) {
+                println(name + " cut a branch at depth " + depth + " due to remainder of " + remainingValueToSelect + " exceeding the lookahead " + lookaheadVec(depth) + ".")
             }
             return Set()
-        } else if (maxInputs == selectedCoins.size) {
-            return Set()
         } else {
-            val withThis = branchAndBound(maxInputs, depth + 1, selectedCoins + utxoVecSorted(depth), effectiveValueSelected + utxoVecSorted(depth).value - COST_PER_INPUT, target, utxoVecSorted, lookaheadVec, feePerKB)
+            val withThis : Set[Utxo] = branchAndBound(depth + 1, remainingValueToSelect - utxoVecSorted(depth).value)
             if (withThis != Set()) {
-                return withThis
+                return withThis + utxoVecSorted(depth)
             } else {
-                val withoutThis = branchAndBound(maxInputs, depth + 1, selectedCoins, effectiveValueSelected, target, utxoVecSorted, lookaheadVec, feePerKB)
+                val withoutThis : Set[Utxo] = branchAndBound(depth + 1, remainingValueToSelect)
                 if (withoutThis != Set()) {
                     return withoutThis
                 }
