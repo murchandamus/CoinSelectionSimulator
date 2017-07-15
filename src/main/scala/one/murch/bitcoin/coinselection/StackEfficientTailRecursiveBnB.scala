@@ -105,9 +105,6 @@ class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB
                 depth = lastIncluded + 1
                 while (lastIncluded >= 0 && selectedUtxo(lastIncluded) == false) {
                     lastIncluded -= 1
-                    if (lastIncluded < 0) {
-                        return false
-                    }
                 }
             } else {
                 remainingValueToSelect = remainingValueToSelect - utxoVecSorted(depth).value + COST_PER_INPUT
