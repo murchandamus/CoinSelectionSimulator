@@ -8,7 +8,7 @@ import scala.util.Random
   * Created by murch on 2017-01-19
   */
 object MoneyPotAfterLF extends Scenario(Set(), ListBuffer(), "Imports final UTXO set of LF after running MP, then runs MP") {
-    val rnd = new Random()
+    val rnd = new Random(1)
     var index = 1
     for (line <- Source.fromResource("scenarios/UTXO-post-LF.csv").getLines()) {
         val nextUTXO: Utxo = new Utxo(index, (line).toLong)

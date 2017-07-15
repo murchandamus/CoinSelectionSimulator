@@ -17,6 +17,8 @@ class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB
     val COST_PER_INPUT = WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
     val extraCostForChange = (WalletConstants.BYTES_PER_OUTPUT + WalletConstants.BYTES_PER_INPUT) * feePerKB / 1000
 
+    var random = new Random(1)
+
     def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
 
         if (debug == true) {
@@ -29,7 +31,7 @@ class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB
 
         // Try Branch-and-Bound
         val utxoVec = utxoPool.toArray
-        utxoVecSorted = utxoVec.sortWith(_.value > _.value)
+        utxoVecSorted = utxoVec.sortBy(_.id).sortBy(_.block).sortWith(_.value > _.value)
 
         lookaheadVec = createLookahead(utxoVecSorted, feePerKB)
         selectedUtxo  = new Array[Boolean](utxoVec.size)
@@ -50,7 +52,7 @@ class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB
 
         //Else select randomly.
         if (selectedCoins == Set()) {
-            var randomizedUtxo = Random.shuffle((utxoPool).toList)
+            var randomizedUtxo = random.shuffle((utxoPool).toList)
 
             while (randomizedUtxo.nonEmpty && selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB) + MIN_CHANGE) {
                 selectedCoins += randomizedUtxo.head
