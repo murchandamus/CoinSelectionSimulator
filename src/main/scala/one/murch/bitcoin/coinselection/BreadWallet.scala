@@ -15,7 +15,7 @@ class BreadWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Bool
             if (debug == true) {
                 println(name + " added " + sortedUtxo.head + ". Combination is now " + selectedCoins + ".")
             }
-            sortedUtxo = sortedUtxo.drop(1)
+            sortedUtxo = sortedUtxo.tail
         }
 
         return selectedCoins

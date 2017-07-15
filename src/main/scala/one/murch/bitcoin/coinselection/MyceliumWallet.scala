@@ -17,7 +17,7 @@ class MyceliumWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: B
             if (debug == true) {
                 println(name + " added " + sortedUtxo.head + ". Combination is now " + selectedCoins + ".")
             }
-            sortedUtxo = sortedUtxo.drop(1)
+            sortedUtxo = sortedUtxo.tail
         }
 
         if (debug == true) {
@@ -32,7 +32,7 @@ class MyceliumWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: B
             if (debug == true) {
                 println(name + " kept " + selectedUtxoBySize.head + ". Combination is now " + selectedCoins + ".")
             }
-            selectedUtxoBySize = selectedUtxoBySize.drop(1)
+            selectedUtxoBySize = selectedUtxoBySize.tail
         }
 
         return selectedCoins

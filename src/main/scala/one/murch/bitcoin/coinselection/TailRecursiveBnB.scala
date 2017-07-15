@@ -41,7 +41,7 @@ class TailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug:
                 if (debug == true) {
                     println(name + " added " + randomizedUtxo.head + ". Combination is now " + selectedCoins + ".")
                 }
-                randomizedUtxo = randomizedUtxo.drop(1)
+                randomizedUtxo = randomizedUtxo.tail
             }
         }
 

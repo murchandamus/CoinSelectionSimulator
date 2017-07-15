@@ -15,7 +15,7 @@ class YoungestFirstWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, deb
             if (debug == true) {
                 println(name + " added " + sortedUtxo.head + ". Combination is now " + selectedCoins + ".")
             }
-            sortedUtxo = sortedUtxo.drop(1)
+            sortedUtxo = sortedUtxo.tail
         }
 
         return selectedCoins

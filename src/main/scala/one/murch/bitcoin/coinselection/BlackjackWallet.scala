@@ -21,7 +21,7 @@ class BlackjackWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: 
             } else {
                 notSelected += sortedUtxo.head
             }
-            sortedUtxo = sortedUtxo.drop(1)
+            sortedUtxo = sortedUtxo.tail
         }
 
         sortedUtxo = notSelected.toList.sortWith(_.value > _.value)
@@ -32,7 +32,7 @@ class BlackjackWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: 
             if (debug == true) {
                 println(name + " added " + sortedUtxo.head + " in LF second round. Combination is now " + selectedCoins + ".")
             }
-            sortedUtxo = sortedUtxo.drop(1)
+            sortedUtxo = sortedUtxo.tail
         }
 
         return selectedCoins
