@@ -13,7 +13,13 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
 
     //val myceliumWallet = new MyceliumWallet("MyceliumWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       //val bnbWallet = new BnBWallet("BranchAndBoundWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
-      val setrBnB= new StackEfficientTailRecursiveBnB("SETRBnB", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+      //val setrBnBShuffle= new StackEfficientTailRecursiveBnB("SETRBnB L", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100000, true)
+      val setrBnB1 = new StackEfficientTailRecursiveBnB("SETRBnB 1", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100000, 1)
+      val setrBnB2 = new StackEfficientTailRecursiveBnB("SETRBnB 2", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100000, 2)
+      val setrBnB3 = new StackEfficientTailRecursiveBnB("SETRBnB 3", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100000, 3)
+      val setrBnB4 = new StackEfficientTailRecursiveBnB("SETRBnB 4", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100000, 4)
+      val setrBnB10 = new StackEfficientTailRecursiveBnB("SETRBnB 10", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100000, 10)
+      val setrBnB100 = new StackEfficientTailRecursiveBnB("SETRBnB 100", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100000, 100)
       val eBnbWallet = new EfficientBnB("EfficientBnBWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       val lfWallet = new LargestFirstWallet("LargestFirstWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       val bjWallet = new BlackjackWallet("BlackjackWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
@@ -50,7 +56,15 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     //    var wallets: List[AbstractWallet] = List(coreWallet, myceliumWallet, breadWallet, androidWallet, randomWallet, doubleWallet)
     //    var wallets: List[AbstractWallet] = List(randomWallet0Z, randomWallet1Z, randomWallet2Z, randomWallet3Z, randomWallet4Z, randomWallet5Z, randomWallet6Z, randomWallet7Z, randomWallet8Z)
     //   var wallets: List[AbstractWallet] = List(coreWallet, coreWalletOutput, coreWalletInput, coreWalletDust)
-    var wallets: List[AbstractWallet] = List(setrBnB, lfWallet, bjWallet, sfWallet, yfWallet, ofWallet, randomWallet0Z, randomWallet4Z, randomWallet6Z)
+    // var wallets: List[AbstractWallet] = List(setrBnB, lfWallet, bjWallet, sfWallet, yfWallet, ofWallet, randomWallet0Z, randomWallet4Z, randomWallet6Z, androidWallet)
+    var wallets: List[AbstractWallet] = List(
+        setrBnB1,
+        setrBnB2,
+        setrBnB3,
+        setrBnB4,
+        setrBnB10,
+        setrBnB100
+    )
 
     def simulate() {
         currentLowestBalance = 0
