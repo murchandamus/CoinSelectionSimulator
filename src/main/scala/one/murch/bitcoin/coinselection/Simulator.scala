@@ -13,7 +13,7 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
 
     //val myceliumWallet = new MyceliumWallet("MyceliumWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       //val bnbWallet = new BnBWallet("BranchAndBoundWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
-      val setrBnB= new StackEfficientTailRecursiveBnB("SETRBnB", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
+      val setrBnB= new StackEfficientTailRecursiveBnB("SETRBnB", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 0.5)
       val eBnbWallet = new EfficientBnB("EfficientBnBWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       val lfWallet = new LargestFirstWallet("LargestFirstWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
       val bjWallet = new BlackjackWallet("BlackjackWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
