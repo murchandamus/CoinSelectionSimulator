@@ -2,10 +2,16 @@ package one.murch.bitcoin.coinselection
 
 import scala.collection.mutable.{ListBuffer, Queue}
 
+sealed abstract class BehaviorOnFailure
+
+case class Skip() extends BehaviorOnFailure
+case class WaitIndividually() extends BehaviorOnFailure
+case class WaitAll() extends BehaviorOnFailure
+
 /**
   * Created by murch on 31.12.16.
   */
-class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: String) {
+class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: String, behaviorOnFailure: BehaviorOnFailure = new WaitAll()) {
     //    val coreWallet = new CoreWallet("CoreWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
     //    val coreWalletOutput = new CoreWallet("CoreWalletDonateOutputCost", utxo, WalletConstants.FEE_PER_KILOBYTE, false, WalletConstants.OUTPUT_COST)
     //    val coreWalletInput = new CoreWallet("CoreWalletDonateInputCost", utxo, WalletConstants.FEE_PER_KILOBYTE, false, WalletConstants.INPUT_COST)
@@ -61,17 +67,32 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
                     wallets.foreach(_.receive(x.value, x.nLockTime))
                 } else if (x.value < 0) {
                     println("----- Outgoing Payment: of " + x.value * (-1) + " in " + x.nLockTime + "----- ")
-                    outgoingPaymentsQueue.enqueue(x)
-                    println("QUEUE has now " + outgoingPaymentsQueue.size + " and current lowest balance is now " + currentLowestBalance)
-                    println("Queue first element is " + outgoingPaymentsQueue.front.value)
-
+                    behaviorOnFailure match {
+                        case Skip() => {
+                            wallets.foreach(wallet => {
+                                if (Wallet.minWalletValue(-1 * x.value) < wallet.getWalletTotal()) {
+                                    wallet.spend((-1) * x.value, x.nLockTime)
+                                }
+                            })
+                        }
+                        case WaitAll() => {
+                            outgoingPaymentsQueue.enqueue(x)
+                            println("QUEUE has now " + outgoingPaymentsQueue.size + " and current lowest balance is now " + currentLowestBalance)
+                            println("Queue first element is " + outgoingPaymentsQueue.front.value)
+                        }
+                        case WaitIndividually() => {
+                            wallets.foreach(_.spendQueued(x))
+                        }
+                    }
+                    
                 }
-                findLowestBalance()
-                println("Current lowest balance is now " + currentLowestBalance)
-                while (false == outgoingPaymentsQueue.isEmpty && ((outgoingPaymentsQueue.front.value * (-1) + 2 * WalletConstants.CENT) < currentLowestBalance)) {
-                    var first: Payment = outgoingPaymentsQueue.dequeue()
-                    wallets.foreach(_.spend((-1) * first.value, first.nLockTime))
+                if (behaviorOnFailure == WaitAll()) {
                     findLowestBalance()
+                    while (false == outgoingPaymentsQueue.isEmpty && (Wallet.minWalletValue(-1 * outgoingPaymentsQueue.front.value) < currentLowestBalance)) {
+                        var first: Payment = outgoingPaymentsQueue.dequeue()
+                        wallets.foreach(_.spend((-1) * first.value, first.nLockTime))
+                        findLowestBalance()
+                    }
                 }
         }
 
