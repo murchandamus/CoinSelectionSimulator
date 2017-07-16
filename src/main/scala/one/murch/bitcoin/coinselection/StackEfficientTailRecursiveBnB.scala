@@ -2,7 +2,7 @@ package one.murch.bitcoin.coinselection
 
 import scala.util.Random
 
-class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, minChange: Long = 100000) extends AbstractWallet(name, utxoList, feePerKB, debug) {
+class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, lfBackup: Boolean, minChange: Long = 100000) extends AbstractWallet(name, utxoList, feePerKB, debug) {
     val MIN_CHANGE = minChange
     val MIN_CHANGE_BEFORE_ADDING_TO_FEE = WalletConstants.DUST_LIMIT
     var branchAndBoundTries = 0
@@ -50,14 +50,14 @@ class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB
 
         //Else select randomly.
         if (selectedCoins == Set()) {
-            var randomizedUtxo = Random.shuffle((utxoPool).toList)
+            var utxoToSelect = if (lfBackup) utxoVecSorted.toList else Random.shuffle((utxoPool).toList)
 
-            while (randomizedUtxo.nonEmpty && selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB) + MIN_CHANGE) {
-                selectedCoins += randomizedUtxo.head
+            while (utxoToSelect.nonEmpty && selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB) + MIN_CHANGE) {
+                selectedCoins += utxoToSelect.head
                 if (debug == true) {
-                    println(name + " added " + randomizedUtxo.head + ". Combination is now " + selectedCoins + ".")
+                    println(name + " added " + utxoToSelect.head + ". Combination is now " + selectedCoins + ".")
                 }
-                randomizedUtxo = randomizedUtxo.tail
+                utxoToSelect = utxoToSelect.tail
             }
         }
 
