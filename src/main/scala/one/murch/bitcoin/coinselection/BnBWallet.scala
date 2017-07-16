@@ -10,7 +10,11 @@ class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolea
     var COST_PER_INPUT = WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
     val extraCostForChange = WalletConstants.BYTES_PER_OUTPUT + WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
 
-    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
+    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Option[Set[Utxo]] = {
+        // not sure how this wallet behaves with unsufficient funds
+        if (Wallet.minWalletValue(target) >= getWalletTotal()) {
+            return None
+        }
 
         if (debug == true) {
             println(name + " is selecting for " + target + " in block " + nLockTime)
@@ -23,7 +27,7 @@ class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolea
 
         for (utxo <- utxoPool) {
             if (utxo.value >= adjustedTarget && utxo.value <= adjustedTarget + extraCostForChange) {
-                return Set(utxo) //Direct Match with one
+                return Some(Set(utxo)) //Direct Match with one
             } else if (utxo.value < adjustedTarget) {
                 smallerCoins += utxo
             }
@@ -33,7 +37,7 @@ class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolea
         val costToSpendSmallerCoins = (WalletConstants.ONE_IN_ONE_OUT_TRANSACTION_SIZE + (smallerCoins.size - 1) * WalletConstants.BYTES_PER_INPUT) * feePerKB / 1000
         if (smallerCoinsTotal >= target + costToSpendSmallerCoins
             && smallerCoinsTotal <= target + costToSpendSmallerCoins + extraCostForChange) {
-            return smallerCoins
+            return Some(smallerCoins)
         }
 
         // Try Branch-and-Bound
@@ -55,7 +59,7 @@ class BnBWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolea
             }
         }
 
-        return selectedCoins
+        return Some(selectedCoins)
     }
 
     def branchAndBound(maxInputs: Int, depth: Int, selectedCoins: Set[Utxo], effectiveValueSelected: Long, target: Long, utxoVecSorted: Array[Utxo], feePerKB: Long): Set[Utxo] = {

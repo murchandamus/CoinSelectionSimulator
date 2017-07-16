@@ -10,12 +10,8 @@ class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boole
     val TRIES = 1000
     var currentTransactionFee: Long = 0 // Ugly hack to get transactionFee estimate from Core's selectCoins into spend.
 
-    override def spend(target: Long, nLockTime: Int) {
-        if (target > getWalletTotal()) {
-            throw new IllegalArgumentException("one.murch.bitcoin.coinselection.Wallet was requested to spend " + target + " but only contained " + getWalletTotal() + ".");
-        }
+    override def spend(selectedCoins: Set[Utxo], target: Long, nLockTime: Int) {
         val starttime: Long = System.currentTimeMillis
-        var selectedCoins: Set[Utxo] = selectCoins(target, feePerKB, nLockTime)
 
         //var fee: Long = estimateFee(target, selectedCoins, feePerKB, MIN_CHANGE) ← Core estimates fee in Selection
         var fee = currentTransactionFee
@@ -30,7 +26,16 @@ class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boole
         inTransitRatio += change.toDouble / getWalletTotal()
     }
 
-    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
+    def adjustMinChange(target: Long) {
+    }
+
+    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Option[Set[Utxo]] = {
+        // not sure how this wallet behaves with unsufficient funds
+        if (Wallet.minWalletValue(target) >= getWalletTotal()) {
+            return None
+        }
+        adjustMinChange(target)
+
         //currentTransactionFee = 0 <--- This would be an accurate depiction of one.murch.bitcoin.coinselection.CoreWallet, but really there aren't any zero-fee transactions anymore. Therefore:
         currentTransactionFee = WalletConstants.ONE_IN_ONE_OUT_TX_MIN_FEE
         var selectionSuccess: Boolean = false
@@ -71,7 +76,11 @@ class CoreWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boole
             }
         }
 
-        return selection
+        if (selection == null || selection.size == 0) {
+            return None;
+        }
+
+        return Some(selection)
     }
 
     def selectCoinsMinConf(adjustedTarget: Long): Set[Utxo] = {

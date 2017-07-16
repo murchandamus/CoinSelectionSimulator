@@ -68,10 +68,20 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
                 }
                 findLowestBalance()
                 println("Current lowest balance is now " + currentLowestBalance)
-                while (false == outgoingPaymentsQueue.isEmpty && ((outgoingPaymentsQueue.front.value * (-1) + 2 * WalletConstants.CENT) < currentLowestBalance)) {
-                    var first: Payment = outgoingPaymentsQueue.dequeue()
-                    wallets.foreach(_.spend((-1) * first.value, first.nLockTime))
-                    findLowestBalance()
+                var stop = false;
+                while (false == outgoingPaymentsQueue.isEmpty && !stop) {
+                    var first: Payment = outgoingPaymentsQueue.front
+                    var results = wallets.zip(wallets.map(wallet => wallet.selectCoins(-1 * first.value, wallet.feePerKB, first.nLockTime)))
+
+                    var spendable = results.forall(_._2.isDefined)
+
+                    if (spendable) {
+                        results.foreach(r => r._1.spend(r._2.get, -1 * first.value, first.nLockTime))
+                        outgoingPaymentsQueue.dequeue()
+                        findLowestBalance()
+                    } else {
+                        stop = true;
+                    }
                 }
         }
 

@@ -7,7 +7,7 @@ class RandomWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
     val MIN_CHANGE = minChange
     val MIN_CHANGE_BEFORE_ADDING_TO_FEE = WalletConstants.DUST_LIMIT
 
-    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
+    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Option[Set[Utxo]] = {
 
         if (debug == true) {
             println(name + " is selecting for " + target + " in block " + nLockTime)
@@ -23,8 +23,11 @@ class RandomWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
             }
             randomizedUtxo = randomizedUtxo.tail
         }
-
-        return selectedCoins
+        if (selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB)) {
+            return None
+        }
+ 
+        return Some(selectedCoins)
     }
 
     def estimateFeeWithChange(target: Long, selectedCoins: Set[Utxo], feePerKB: Long): Long = {

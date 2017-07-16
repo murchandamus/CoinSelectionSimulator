@@ -13,7 +13,11 @@ class TailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug:
     val COST_PER_INPUT = WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
     val extraCostForChange = WalletConstants.BYTES_PER_OUTPUT + WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
 
-    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
+    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Option[Set[Utxo]] = {
+        // not sure how this wallet behaves with unsufficient funds
+        if (Wallet.minWalletValue(target) >= getWalletTotal()) {
+            return None
+        }
 
         if (debug == true) {
             println(name + " is selecting for " + target + " in block " + nLockTime)
@@ -45,7 +49,7 @@ class TailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug:
             }
         }
 
-        return selectedCoins
+        return Some(selectedCoins)
     }
 
     def branchAndBound(depth: Int, remainingValueToSelect: Long): Set[Utxo] = {
