@@ -1,6 +1,6 @@
 package one.murch.bitcoin.coinselection
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ListBuffer, Queue}
 
 abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var feePerKB: Long = WalletConstants.FEE_PER_KILOBYTE, var debug: Boolean = false) {
     var countSpentUtxo: Int = 0
@@ -15,6 +15,9 @@ abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var fee
     var inTransitRatio: ListBuffer[Double] = new ListBuffer[Double]()
     val MIN_CHANGE_BEFORE_ADDING_TO_FEE: Long
 
+    // this will get used only with WaitIndividually behavior
+    val outgoingPaymentsQueue: Queue[Payment] = Queue[Payment]()
+
     def receive(outputValue: Long, nLockTime: Int, isChange: Boolean = false) {
         if (outputValue > 0) {
             var utxo = new Utxo(utxoIndex, outputValue, nLockTime)
@@ -26,6 +29,9 @@ abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var fee
             }
         }
         utxoSetSizes += utxoPool.size
+        if (!isChange) {
+            tryQueue()
+        }
     }
 
     def getWalletTotal(): Long = {
@@ -60,6 +66,23 @@ abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var fee
             }
         }
         return biggestUtxo
+    }
+
+    def spendQueued(p: Payment) {
+        outgoingPaymentsQueue.enqueue(p)
+        tryQueue()
+    }
+
+    def tryQueue() {
+        while (false == outgoingPaymentsQueue.isEmpty) {
+            val first: Payment = outgoingPaymentsQueue.front
+            if (Wallet.minWalletValue(-1 * first.value) < getWalletTotal()) {
+                outgoingPaymentsQueue.dequeue()
+                spend((-1) * first.value, first.nLockTime)
+            } else {
+                return
+            }
+        }
     }
 
     def spend(target: Long, nLockTime: Int) {
