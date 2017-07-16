@@ -15,7 +15,7 @@ object Simulation {
 //        val testCases10 = new Simulator(TestCaseMoneyPot15.startingUtxoSet, TestCaseMoneyPot15.operations, TestCaseMoneyPot15.descriptor)
 //        val testCases11 = new Simulator(TestCaseMoneyPot15Coins.startingUtxoSet, TestCaseMoneyPot15Coins.operations, TestCaseMoneyPot15Coins.descriptor)
 //        val testCases12 = new Simulator(Set(), TestCaseMoneyPotEmpty.operations, TestCaseMoneyPotEmpty.descriptor)
-        val mpAfterLF = new Simulator(MoneyPotAfterLF.startingUtxoSet, MoneyPotAfterLF.operations, MoneyPotAfterLF.descriptor)
+        val mpAfterLF = new Simulator(MoneyPotAfterLF.startingUtxoSet, MoneyPotAfterLF.operations, MoneyPotAfterLF.descriptor, 10)
 
         //        //        println("--------------------------------------------------------------------------------------")
         //        //        println("---------------TEST CASE 1 STARTING---------------------------------------------------")
