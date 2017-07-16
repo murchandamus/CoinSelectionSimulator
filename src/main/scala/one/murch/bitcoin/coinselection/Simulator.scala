@@ -5,7 +5,7 @@ import scala.collection.mutable.{ListBuffer, Queue}
 /**
   * Created by murch on 31.12.16.
   */
-class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: String) {
+class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: String, parallel: Int = 1) {
     //    val coreWallet = new CoreWallet("CoreWallet", utxo, WalletConstants.FEE_PER_KILOBYTE, false)
     //    val coreWalletOutput = new CoreWallet("CoreWalletDonateOutputCost", utxo, WalletConstants.FEE_PER_KILOBYTE, false, WalletConstants.OUTPUT_COST)
     //    val coreWalletInput = new CoreWallet("CoreWalletDonateInputCost", utxo, WalletConstants.FEE_PER_KILOBYTE, false, WalletConstants.INPUT_COST)
@@ -52,6 +52,10 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     //   var wallets: List[AbstractWallet] = List(coreWallet, coreWalletOutput, coreWalletInput, coreWalletDust)
     var wallets: List[AbstractWallet] = List(setrBnB, lfWallet, bjWallet, sfWallet, yfWallet, ofWallet, randomWallet0Z, randomWallet4Z, randomWallet6Z)
 
+    val walletsPar = wallets.par
+    walletsPar.tasksupport = new scala.collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(parallel))
+    val walletsMayPar = if (parallel == 1) wallets else walletsPar
+
     def simulate() {
         currentLowestBalance = 0
         operations.foreach {
@@ -70,7 +74,7 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
                 println("Current lowest balance is now " + currentLowestBalance)
                 while (false == outgoingPaymentsQueue.isEmpty && ((outgoingPaymentsQueue.front.value * (-1) + 2 * WalletConstants.CENT) < currentLowestBalance)) {
                     var first: Payment = outgoingPaymentsQueue.dequeue()
-                    wallets.foreach(_.spend((-1) * first.value, first.nLockTime))
+                    walletsMayPar.foreach(_.spend((-1) * first.value, first.nLockTime))
                     findLowestBalance()
                 }
         }
