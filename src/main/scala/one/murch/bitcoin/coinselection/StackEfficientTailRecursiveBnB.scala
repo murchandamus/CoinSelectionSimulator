@@ -2,8 +2,8 @@ package one.murch.bitcoin.coinselection
 
 import scala.util.Random
 
-class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, minChange: Long = 100000) extends AbstractWallet(name, utxoList, feePerKB, debug) {
-    val MIN_CHANGE = minChange
+class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean, minChangeFactor: Int = 67) extends AbstractWallet(name, utxoList, feePerKB, debug) {
+    val MIN_CHANGE = minChangeFactor * WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
     val MIN_CHANGE_BEFORE_ADDING_TO_FEE = WalletConstants.DUST_LIMIT
     var branchAndBoundTries = 0
     val maxTries = 1000000
