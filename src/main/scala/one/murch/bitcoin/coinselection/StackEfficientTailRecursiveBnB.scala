@@ -60,8 +60,8 @@ class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB
                     if (debug == true) {
                         println(name + " added " + randomizedUtxo.head + ". Combination is now " + selectedCoins + ".")
                     }
-                    randomizedUtxo = randomizedUtxo.tail
                 }
+                randomizedUtxo = randomizedUtxo.tail
             }
         }
 
