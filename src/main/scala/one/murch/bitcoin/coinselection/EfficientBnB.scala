@@ -10,7 +10,11 @@ class EfficientBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
     var COST_PER_INPUT = WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
     val extraCostForChange = WalletConstants.BYTES_PER_OUTPUT + WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
 
-    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
+    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Option[Set[Utxo]] = {
+        // not sure how this wallet behaves with unsufficient funds
+        if (Wallet.minWalletValue(target) >= getWalletTotal()) {
+            return None
+        }
 
         if (debug == true) {
             println(name + " is selecting for " + target + " in block " + nLockTime)
@@ -42,7 +46,7 @@ class EfficientBnB(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boo
             }
         }
 
-        return selectedCoins
+        return Some(selectedCoins)
     }
 
     def branchAndBound(maxInputs: Int, depth: Int, selectedCoins: Set[Utxo], effectiveValueSelected: Long, target: Long, utxoVecSorted: Array[Utxo], lookaheadVec: Array[Long], feePerKB: Long): Set[Utxo] = {

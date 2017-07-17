@@ -17,7 +17,7 @@ class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB
     val COST_PER_INPUT = WalletConstants.BYTES_PER_INPUT * feePerKB / 1000
     val extraCostForChange = (WalletConstants.BYTES_PER_OUTPUT + WalletConstants.BYTES_PER_INPUT) * feePerKB / 1000
 
-    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
+    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Option[Set[Utxo]] = {
 
         if (debug == true) {
             println(name + " is selecting for " + target + " in block " + nLockTime)
@@ -40,6 +40,7 @@ class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB
 
         branchAndBoundTries = maxTries
         depth = 0
+        lastIncluded = -1
         if(branchAndBound() == true) {
             for(i <- 0 to lastIncluded) {
                 if(selectedUtxo(i) == true) {
@@ -59,9 +60,12 @@ class StackEfficientTailRecursiveBnB(name: String, utxoList: Set[Utxo], feePerKB
                 }
                 randomizedUtxo = randomizedUtxo.tail
             }
+            if (selectionTotal(selectedCoins) < target + estimateFeeWithChange(target, selectedCoins, feePerKB)) {
+                return None
+            }
         }
 
-        return selectedCoins
+        return Some(selectedCoins)
     }
 
     def branchAndBound(): Boolean = {

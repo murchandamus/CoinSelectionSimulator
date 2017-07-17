@@ -243,3 +243,8 @@ class Wallet(name: String, utxoList: Set[(Int,Long)], debug: Boolean, knapsackLi
     }
 }
 
+object Wallet {
+    def minWalletValue(target: Long): Long = {
+        return target + 2 * WalletConstants.CENT
+    }
+}

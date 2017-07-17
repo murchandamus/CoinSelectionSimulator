@@ -45,7 +45,6 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     val randomWallet8Z = new RandomWallet("RandomWallet8Z", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100000000)
 */
     var outgoingPaymentsQueue: Queue[Payment] = Queue[Payment]()
-    var currentLowestBalance: Long = 0
 
     //    var wallets: List[AbstractWallet] = List(coreWallet, myceliumWallet, breadWallet, androidWallet, randomWallet, doubleWallet)
     //    var wallets: List[AbstractWallet] = List(randomWallet0Z, randomWallet1Z, randomWallet2Z, randomWallet3Z, randomWallet4Z, randomWallet5Z, randomWallet6Z, randomWallet7Z, randomWallet8Z)
@@ -53,7 +52,6 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     var wallets: List[AbstractWallet] = List(setrBnB, lfWallet, bjWallet, sfWallet, yfWallet, ofWallet, randomWallet0Z, randomWallet4Z, randomWallet6Z)
 
     def simulate() {
-        currentLowestBalance = 0
         operations.foreach {
             x =>
                 if (x.value > 0) {
@@ -66,12 +64,20 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
                     println("Queue first element is " + outgoingPaymentsQueue.front.value)
 
                 }
-                findLowestBalance()
                 println("Current lowest balance is now " + currentLowestBalance)
-                while (false == outgoingPaymentsQueue.isEmpty && ((outgoingPaymentsQueue.front.value * (-1) + 2 * WalletConstants.CENT) < currentLowestBalance)) {
-                    var first: Payment = outgoingPaymentsQueue.dequeue()
-                    wallets.foreach(_.spend((-1) * first.value, first.nLockTime))
-                    findLowestBalance()
+                var stop = false;
+                while (false == outgoingPaymentsQueue.isEmpty && !stop) {
+                    var first: Payment = outgoingPaymentsQueue.front
+                    var results = wallets.zip(wallets.map(wallet => wallet.selectCoins(-1 * first.value, wallet.feePerKB, first.nLockTime)))
+
+                    var spendable = results.forall(_._2.isDefined)
+
+                    if (spendable) {
+                        results.foreach(r => r._1.spend(r._2.get, -1 * first.value, first.nLockTime))
+                        outgoingPaymentsQueue.dequeue()
+                    } else {
+                        stop = true;
+                    }
                 }
         }
 
@@ -89,12 +95,5 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
 
         wallets.foreach(_.dumpUtxoSet())
         println("-------------------------------------------------------------------------------")
-    }
-
-    def findLowestBalance() = {
-        currentLowestBalance = Long.MaxValue
-        wallets.foreach {
-            w => currentLowestBalance = Math.min(w.getWalletTotal(), currentLowestBalance)
-        }
     }
 }

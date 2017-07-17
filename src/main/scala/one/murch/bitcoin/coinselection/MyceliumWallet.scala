@@ -5,7 +5,12 @@ package one.murch.bitcoin.coinselection
 class MyceliumWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: Boolean) extends AbstractWallet(name, utxoList, feePerKB, debug) {
     val MIN_CHANGE_BEFORE_ADDING_TO_FEE: Long = 5460
 
-    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo] = {
+    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Option[Set[Utxo]] = {
+        // not sure how this wallet behaves with unsufficient funds
+        if (Wallet.minWalletValue(target) >= getWalletTotal()) {
+            return None
+        }
+
         if (debug == true) {
             println(name + " is selecting for " + target)
         }
@@ -35,7 +40,7 @@ class MyceliumWallet(name: String, utxoList: Set[Utxo], feePerKB: Long, debug: B
             selectedUtxoBySize = selectedUtxoBySize.tail
         }
 
-        return selectedCoins
+        return Some(selectedCoins)
     }
 
     def estimateFeeWithChange(target: Long, selectedCoins: Set[Utxo], feePerKB: Long): Long = {

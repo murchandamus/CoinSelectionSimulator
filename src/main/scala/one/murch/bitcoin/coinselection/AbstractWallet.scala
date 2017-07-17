@@ -62,20 +62,14 @@ abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var fee
         return biggestUtxo
     }
 
-    def spend(target: Long, nLockTime: Int) {
-        if (target > getWalletTotal()) {
-            throw new IllegalArgumentException("one.murch.bitcoin.coinselection.Wallet was requested to spend " + target + " but only contained " + getWalletTotal() + ".");
-        }
-        val starttime: Long = System.currentTimeMillis
-        var selectedCoins: Set[Utxo] = selectCoins(target, feePerKB, nLockTime)
+    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Option[Set[Utxo]]
 
+    def spend(selectedCoins: Set[Utxo], target: Long, nLockTime: Int) {
         var fee: Long = estimateFee(target, selectedCoins, feePerKB, MIN_CHANGE_BEFORE_ADDING_TO_FEE)
 
         var change: Long = selectionTotal(selectedCoins) - target - fee
 
-        val duration = (System.currentTimeMillis) - starttime
-
-        var tx = new Transaction(name, target, change, fee, selectedCoins, nLockTime, duration)
+        var tx = new Transaction(name, target, change, fee, selectedCoins, nLockTime, 0)
         executeTransaction(tx)
         utxoSetSizes += utxoPool.size
         inTransitRatio += change.toDouble / getWalletTotal()
@@ -142,8 +136,6 @@ abstract class AbstractWallet(var name: String, var utxoList: Set[Utxo], var fee
         }
         printTransactionReport(tx)
     }
-
-    def selectCoins(target: Long, feePerKB: Long, nLockTime: Int): Set[Utxo]
 
     def selectionTotal(selection: Set[Utxo]): Long = {
         var totalValue: Long = 0
