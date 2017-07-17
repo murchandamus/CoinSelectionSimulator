@@ -45,7 +45,6 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     val randomWallet8Z = new RandomWallet("RandomWallet8Z", utxo, WalletConstants.FEE_PER_KILOBYTE, false, 100000000)
 */
     var outgoingPaymentsQueue: Queue[Payment] = Queue[Payment]()
-    var currentLowestBalance: Long = 0
 
     //    var wallets: List[AbstractWallet] = List(coreWallet, myceliumWallet, breadWallet, androidWallet, randomWallet, doubleWallet)
     //    var wallets: List[AbstractWallet] = List(randomWallet0Z, randomWallet1Z, randomWallet2Z, randomWallet3Z, randomWallet4Z, randomWallet5Z, randomWallet6Z, randomWallet7Z, randomWallet8Z)
@@ -53,7 +52,6 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
     var wallets: List[AbstractWallet] = List(setrBnB, lfWallet, bjWallet, sfWallet, yfWallet, ofWallet, randomWallet0Z, randomWallet4Z, randomWallet6Z)
 
     def simulate() {
-        currentLowestBalance = 0
         operations.foreach {
             x =>
                 if (x.value > 0) {
@@ -66,7 +64,6 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
                     println("Queue first element is " + outgoingPaymentsQueue.front.value)
 
                 }
-                findLowestBalance()
                 println("Current lowest balance is now " + currentLowestBalance)
                 var stop = false;
                 while (false == outgoingPaymentsQueue.isEmpty && !stop) {
@@ -78,7 +75,6 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
                     if (spendable) {
                         results.foreach(r => r._1.spend(r._2.get, -1 * first.value, first.nLockTime))
                         outgoingPaymentsQueue.dequeue()
-                        findLowestBalance()
                     } else {
                         stop = true;
                     }
@@ -99,12 +95,5 @@ class Simulator(utxo: Set[Utxo], operations: ListBuffer[Payment], descriptor: St
 
         wallets.foreach(_.dumpUtxoSet())
         println("-------------------------------------------------------------------------------")
-    }
-
-    def findLowestBalance() = {
-        currentLowestBalance = Long.MaxValue
-        wallets.foreach {
-            w => currentLowestBalance = Math.min(w.getWalletTotal(), currentLowestBalance)
-        }
     }
 }
